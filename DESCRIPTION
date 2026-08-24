@@ -3,9 +3,9 @@ Type: Package
 Title: Collinearity Diagnostics for Generalized Linear Models
 Version: 0.2.0
 Authors@R: c(
-    person(given = "Catalina", family = "Garcia Garcia",
+    person(given = "Catalina", family = "García García",
            email = "cbgarcia@go.ugr.es", role = c("aut", "cre")),
-    person(given = "Roman", family = "Salmeron Gomez", role = "aut")
+    person(given = "Román", family = "Salmerón Gómez", role = "aut")
 )
 Description: Tools to diagnose collinearity in generalized linear models
     (GLMs) via the condition number, a full Belsley-Kuh-Welsch variance-
