@@ -1,0 +1,27 @@
+Package: multiCollglm
+Type: Package
+Title: Collinearity Diagnostics for Generalized Linear Models
+Version: 0.2.0
+Authors@R: person(given = "Catalina", family = "Garcia Garcia",
+    email = "cbgarcia@go.ugr.es", role = c("aut", "cre"))
+Description: Tools to diagnose collinearity in generalized linear models
+    (GLMs) via the condition number, a full Belsley-Kuh-Welsch variance-
+    decomposition analysis, and the Redefined Variance Inflation Factor
+    (RVIF; Salmeron, Garcia and Garcia 2025). All three are computed on
+    the design matrix weighted by the IRLS weights at convergence and
+    scaled to unit length by column (without centering). Provides methods
+    for 'glm' objects and for regularized models fitted with 'glmnet' or
+    'cv.glmnet', which are internally refit as a 'glm' on the active set
+    of variables selected at the given lambda.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+Imports:
+    stats,
+    rvif
+Suggests:
+    glmnet,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.0
