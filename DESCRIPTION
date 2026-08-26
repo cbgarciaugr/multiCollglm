@@ -20,8 +20,8 @@ Description: Tools to diagnose collinearity in generalized linear models
     models fitted with 'glmnet' or 'cv.glmnet', which are internally refit
     as a 'glm' on the active set of variables selected at the given lambda.
 License: GPL (>= 3)
-URL: https://github.com/<usuario-github>/multiCollglm, https://<usuario-github>.github.io/multiCollglm/
-BugReports: https://github.com/<usuario-github>/multiCollglm/issues
+URL: https://github.com/cbgarciaugr/multiCollglm, https://cbgarciaugr.github.io/multiCollglm/
+BugReports: https://github.com/cbgarciaugr/multiCollglm/issues
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
