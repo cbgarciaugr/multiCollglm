@@ -1,0 +1,45 @@
+url: https://<usuario-github>.github.io/multiCollglm/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+home:
+  title: "multiCollglm: diagnósticos de colinealidad para GLM"
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+  components:
+    articles:
+      text: Artículos
+      menu:
+      - text: Reproducciones de colinealidad
+      - text: "-------"
+
+reference:
+- title: Diagnósticos
+  desc: >
+    Las tres funciones principales, calculadas sobre la matriz de diseño
+    ponderada por IRLS en convergencia y escalada a longitud unitaria por
+    columna (sin centrar).
+  contents:
+  - condition_number
+  - bkw_diagnostics
+  - rvif_diagnostics
+- title: Paquete
+  contents:
+  - multiCollglm-package
+
+articles:
+- title: Reproducciones de colinealidad
+  desc: >
+    Casos publicados en los que la colinealidad se diagnosticó sin aplicar
+    la transformación correcta de los datos, reproducidos y comparados con
+    los resultados de multiCollglm.
+  contents:
+  - reproduccion-plantilla
+  # A medida que se añadan artículos reales (a partir de
+  # reproduccion-plantilla.Rmd), listarlos aquí uno por línea, por ejemplo:
+  # - reproduccion-perez-2019-consumo-energia

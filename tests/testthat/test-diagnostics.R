@@ -123,6 +123,130 @@ test_that("center = TRUE on an intercept model raises an informative error inste
   expect_error(rvif_diagnostics(mod, center = TRUE, scale = "unit"), "rvifs")
 })
 
+test_that("method = \"RAW\" computes the condition number directly on X'WX, with no centering or scaling", {
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+
+  res_raw <- condition_number(mod, method = "RAW")
+
+  X <- model.matrix(mod)
+  Xw <- X * sqrt(mod$weights) # X'WX = t(Xw) %*% Xw, no further transformation
+  ev_manual <- sort(eigen(crossprod(Xw), symmetric = TRUE)$values, decreasing = TRUE)
+  cn_manual <- max(ev_manual) / min(ev_manual)
+
+  expect_identical(res_raw$nc_label, "NC_RAW")
+  expect_identical(res_raw$method, "RAW")
+  expect_equal(unname(res_raw$eigenvalues), ev_manual, tolerance = 1e-8)
+  expect_equal(res_raw$condition_number, cn_manual, tolerance = 1e-8)
+
+  # Same as calling condition_number(mod, center = FALSE, scale = FALSE) directly
+  res_manual_call <- condition_number(mod, center = FALSE, scale = FALSE)
+  expect_equal(res_raw$condition_number, res_manual_call$condition_number, tolerance = 1e-8)
+
+  # Unlike NC_WS, NC_RAW is not unit-length scaled, so it is (usually) a
+  # genuinely different, typically much larger number.
+  res_ws <- condition_number(mod, method = "WS")
+  expect_false(isTRUE(all.equal(res_raw$condition_number, res_ws$condition_number)))
+})
+
+test_that("method = \"WS\" matches center = FALSE, scale = \"unit\" (the package default) and labels the result", {
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+
+  res_default <- condition_number(mod)
+  res_ws <- condition_number(mod, method = "WS")
+
+  expect_null(res_default$nc_label) # unchanged default: no method -> no label
+  expect_identical(res_ws$nc_label, "NC_WS")
+  expect_identical(res_ws$method, "WS")
+  expect_equal(res_ws$eigenvalues, res_default$eigenvalues)
+  expect_equal(res_ws$condition_number, res_default$condition_number)
+})
+
+test_that("method = \"OZ\" drops the intercept before centering/scaling, following every worked example in Ozkale (2019)", {
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+
+  # Reproduce Ozkale's own procedure by hand: drop the intercept column
+  # from the design matrix (keeping the IRLS weights of the original,
+  # with-intercept fit), then center and scale to unit length -- this is
+  # what method = "OZ" should do automatically, without requiring the user
+  # to refit the model without an intercept themselves.
+  X <- model.matrix(mod)
+  X_no_intercept <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+  Xw <- X_no_intercept * sqrt(mod$weights)
+  Xc <- sweep(Xw, 2, colMeans(Xw), "-")
+  X_unit <- sweep(Xc, 2, sqrt(colSums(Xc^2)), "/")
+  ev_manual <- sort(eigen(crossprod(X_unit), symmetric = TRUE)$values, decreasing = TRUE)
+  cn_manual <- max(ev_manual) / min(ev_manual)
+
+  res_oz <- condition_number(mod, method = "OZ")
+
+  expect_identical(res_oz$nc_label, "NC_OZ")
+  # Because the intercept was dropped, this ordinary (non-degenerate) case
+  # should NOT hit the exact-rank-deficiency warning/Inf anymore.
+  expect_true(is.finite(res_oz$condition_number))
+  expect_equal(unname(res_oz$condition_number), cn_manual, tolerance = 1e-6)
+
+  # NC_OZ and NC_WS are still genuinely different definitions
+  res_ws <- condition_number(mod, method = "WS")
+  expect_false(isTRUE(all.equal(res_oz$condition_number, res_ws$condition_number)))
+})
+
+test_that("manual center = TRUE (bypassing method = \"OZ\") still keeps the intercept and can hit exact rank-deficiency", {
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+
+  # Without going through method = "OZ", center = TRUE keeps the intercept
+  # column, which for a canonical-link GLM with an intercept is
+  # mathematically guaranteed to drop the rank by exactly one (see
+  # bkw_diagnostics()): the smallest eigenvalue is exactly zero up to
+  # floating-point noise, which can round to a tiny *negative* value.
+  # condition_number() must clamp that to a proper Inf rather than silently
+  # returning a nonsensical negative "condition number".
+  expect_warning(
+    res_manual <- condition_number(mod, center = TRUE, scale = "unit"),
+    "rank-deficient"
+  )
+  expect_true(is.infinite(res_manual$condition_number) && res_manual$condition_number > 0)
+})
+
+test_that("method = \"MP\" refits on unit-length-rescaled variables and matches the direct (no-refit) formula", {
+  skip_if_not_installed("multiColl")
+
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+
+  res_mp <- condition_number(mod, method = "MP")
+  expect_identical(res_mp$nc_label, "NC_MP")
+
+  # Direct formula, no refit needed: a GLM's fitted values -- and hence its
+  # IRLS weights at convergence -- are invariant to any linear rescaling of
+  # the columns of X, so MP can equivalently be computed by scaling the
+  # ORIGINAL X to unit length first and weighting with mod's own IRLS
+  # weights afterwards, with no further transformation.
+  X <- model.matrix(mod)
+  X_unit_first <- multiColl::lu(X)
+  Xw <- X_unit_first * sqrt(mod$weights)
+  M <- crossprod(Xw)
+  ev <- sort(eigen(M, symmetric = TRUE)$values, decreasing = TRUE)
+  cn_direct <- max(ev) / min(ev)
+
+  expect_equal(unname(res_mp$condition_number), cn_direct, tolerance = 1e-6)
+
+  # MP, WS and OZ are three genuinely different definitions
+  cn_ws <- condition_number(mod, method = "WS")$condition_number
+  expect_false(isTRUE(all.equal(res_mp$condition_number, cn_ws)))
+})
+
+test_that("method = \"MP\" gives an informative error when 'multiColl' is not installed", {
+  skip_if(requireNamespace("multiColl", quietly = TRUE), "multiColl is installed; cannot test the missing-package branch")
+
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+  expect_error(condition_number(mod, method = "MP"), "multiColl")
+})
+
 test_that("condition_number.glmnet refits on the active set and matches the equivalent glm", {
   skip_if_not_installed("glmnet")
   library(glmnet)
@@ -161,4 +285,97 @@ test_that("condition_number.glmnet requires 's' and a valid 'family'", {
 
   expect_error(condition_number(fit, x = x, y = y, family = Gamma(link = "inverse")), "lambda")
   expect_error(condition_number(fit, x = x, y = y, s = fit$lambda[1]), "family")
+})
+
+test_that("method = \"OZ\" can still be exactly rank-deficient for a Gamma/inverse-link model with NO intercept (Ozkale 2019, Sec. 5.3)", {
+  # Nitrogen dioxide data (Chatterjee & Hadi 1998), used by Ozkale (2019,
+  # Sec. 5.3) with a Gamma/inverse-link GLM fit WITHOUT an intercept. This
+  # is the case that method = "OZ"'s intercept-drop cannot rescue: the
+  # structural identity sqrt(w) * linear.predictors == 1 holds for the
+  # Gamma-inverse link regardless of whether an intercept was ever present,
+  # so the (centered, unit-scaled) design matrix is exactly rank-deficient
+  # here too.
+  d <- data.frame(
+    y  = c(6, 5, 5, 3, 7, 9, 6, 2, 10, 7, 3, 4, 13, 10, 7, 3, 6, 5, 4, 9, 11, 8, 9, 6, 2),
+    x1 = c(11.1, 12.1, 12, 17.8, 9.5, 7.2, 11.5, 13.4, 10.8, 13.8, 14.6, 12.1, 8, 8.8, 12.9,
+           12.7, 12.1, 11.1, 11.3, 9, 9.2, 8.4, 8, 13.8, 17.8),
+    x2 = c(90, 86, 80, 70, 90, 100, 92, 74, 87, 78, 73, 85, 94, 91, 84, 68, 81, 78, 74, 78,
+           84, 90, 90, 80, 68),
+    x3 = c(382, 380, 372, 352, 358, 362, 302, 316, 339, 328, 278, 339, 241, 193, 268, 113,
+           313, 317, 324, 312, 349, 290, 295, 283, 259),
+    x4 = c(12, 20, 19, 16, 10, 12, 15, 15, 14, 14, 5, 17, 16, 13, 8, -9, 6, 10, 1, 5, 4, 14,
+           9, 5, -10)
+  )
+  mod <- glm(y ~ x1 + x2 + x3 + x4 - 1, family = Gamma(link = "inverse"), data = d)
+
+  eta_hat <- as.numeric(model.matrix(mod) %*% coef(mod))
+  expect_equal(sqrt(mod$weights) * eta_hat, rep(1, nrow(d)), tolerance = 1e-6)
+
+  expect_warning(res_oz <- condition_number(mod, method = "OZ"), "rank-deficient")
+  expect_true(is.infinite(res_oz$condition_number) && res_oz$condition_number > 0)
+
+  # method = "WS" (the package default) has no centering step, so it is
+  # unaffected by this degeneracy and remains finite.
+  res_ws <- condition_number(mod, method = "WS")
+  expect_true(is.finite(res_ws$condition_number))
+})
+
+test_that("method = \"RAW\" reproduces the mine fracture data condition indices (Myers 1990; Marx 1992; Kurtoglu and Ozkale 2017)", {
+  # Mine fracture data (Myers 1990), 44 coal mine areas in the Appalachian
+  # region of western Virginia, used by Marx (1992) and Kurtoglu and Ozkale
+  # (2017) to illustrate severe multicollinearity in a Poisson GLM. y is the
+  # number of upper seam injuries/fractures; x1 = inner burden thickness,
+  # x2 = percent extraction of the lower previously mined seam, x3 = lower
+  # seam height, x4 = time (years) the mine has been open.
+  d <- data.frame(
+    y  = c(2, 1, 0, 4, 1, 2, 0, 0, 4, 4, 1, 4, 1, 5, 2, 5, 5, 5, 0, 5, 1, 1, 3, 3, 2, 2, 0, 1,
+           5, 2, 3, 3, 3, 0, 0, 2, 0, 0, 3, 2, 3, 5, 0, 3),
+    x1 = c(50, 230, 125, 75, 70, 65, 65, 350, 350, 160, 145, 145, 180, 43, 42, 42, 45, 83, 300,
+           190, 145, 510, 65, 470, 300, 275, 420, 65, 40, 900, 95, 40, 140, 150, 80, 80, 145,
+           100, 150, 150, 210, 11, 100, 50),
+    x2 = c(70, 65, 70, 65, 65, 70, 60, 60, 90, 80, 65, 85, 70, 80, 85, 85, 85, 85, 65, 90, 90,
+           80, 75, 90, 80, 90, 50, 80, 75, 90, 88, 85, 90, 50, 60, 85, 65, 65, 80, 80, 75, 75,
+           65, 88),
+    x3 = c(52, 42, 45, 68, 53, 46, 62, 54, 54, 38, 38, 38, 42, 40, 51, 51, 42, 48, 68, 84, 54,
+           57, 68, 90, 165, 40, 44, 48, 51, 48, 36, 57, 38, 44, 96, 96, 72, 72, 48, 48, 42, 42,
+           60, 60),
+    x4 = c(1, 6, 1, 0.5, 0.5, 3, 1, 0.5, 0.5, 0, 10, 0, 2, 0, 12, 0, 0, 10, 10, 6, 12, 10, 5, 9,
+           9, 4, 17, 15, 15, 35, 20, 10, 7, 5, 5, 5, 9, 9, 3, 0, 2, 0, 25, 20)
+  )
+
+  # The published OLS estimator (used as the IRLS starting value in the
+  # papers above) reproduces exactly, which confirms the data set is
+  # transcribed correctly (two of its 44 rows are easy to mistype: row 30
+  # has y = 2, not 22, and row 36 has x1 = 80, not 0).
+  ols <- lm(y ~ x1 + x2 + x3 + x4, data = d)
+  expect_equal(
+    unname(coef(ols)),
+    c(-4.579885, -0.001896, 0.104574, -0.007993, -0.050250),
+    tolerance = 1e-5
+  )
+
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = poisson(link = "log"), data = d)
+  res_raw <- condition_number(mod, method = "RAW")
+
+  expect_identical(res_raw$nc_label, "NC_RAW")
+  # Published eigenvalues of X'WX (Marx 1992): 4164686, 338966.8, 30607.81,
+  # 3824.866, 0.9504078 -- matched to within IRLS convergence tolerance.
+  expect_equal(
+    unname(res_raw$eigenvalues),
+    c(4164686, 338966.8, 30607.81, 3824.866, 0.9504078),
+    tolerance = 1e-4
+  )
+  # Published condition indices: 1.0000, 3.5052, 11.6647, 32.9976, 2093.3225
+  condition_indices <- sqrt(max(res_raw$eigenvalues) / res_raw$eigenvalues)
+  expect_equal(
+    condition_indices,
+    c(1.0000, 3.5052, 11.6647, 32.9976, 2093.3225),
+    tolerance = 1e-3
+  )
+  expect_equal(res_raw$condition_index, 2093.3225, tolerance = 1e-3)
+
+  # Ridge parameter k = p / (b'b) with p = number of coefficients INCLUDING
+  # the intercept (5, not 4) reproduces the published k = 0.3871427.
+  k <- length(coef(mod)) / sum(coef(mod)^2)
+  expect_equal(k, 0.3871427, tolerance = 1e-4)
 })

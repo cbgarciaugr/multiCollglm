@@ -11,6 +11,12 @@ convergence weights, the package identifies the active set of variables
 at the given `lambda` and refits a standard `glm()` on them so the same
 diagnostics can be computed.
 
+See `vignette("multiCollglm")` for a getting-started guide, and the
+[package website](https://<usuario-github>.github.io/multiCollglm/) for
+worked reproductions of published works where collinearity was diagnosed
+without the correct data transformation, compared against the results
+from this package.
+
 ## Installation
 
 ```r

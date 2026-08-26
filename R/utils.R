@@ -13,12 +13,34 @@
 # classical condition-index thresholds and the RVIF formula. Any other
 # 'scale' value is delegated to base::scale() as-is (e.g. scale = TRUE
 # for root-mean-square scaling).
-.build_design <- function(mod, center = FALSE, scale = "unit") {
+.build_design <- function(mod, center = FALSE, scale = "unit", drop_intercept = FALSE) {
   if (!inherits(mod, "glm")) {
     stop("A 'glm' object was expected.", call. = FALSE)
   }
 
   X <- stats::model.matrix(mod)
+
+  if (isTRUE(drop_intercept) && "(Intercept)" %in% colnames(X)) {
+    # Ozkale (2019) centers and scales the IRLS-weighted design matrix, but
+    # every one of her worked examples fits the GLM *without* an intercept
+    # term to begin with. Centering a weighted design matrix that includes
+    # an intercept is mathematically guaranteed to drop its rank by exactly
+    # one for a canonical-link GLM (see the warning below in
+    # condition_number.glm()), which her examples never exhibit. To match
+    # her procedure without requiring the user to refit the model, the
+    # intercept column is simply excluded here before centering/scaling;
+    # the IRLS weights used are still those of the original (with-intercept)
+    # fit passed in by the caller.
+    X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+    if (ncol(X) == 0L) {
+      stop(
+        "Dropping the intercept (method = \"OZ\") left no explanatory variables to diagnose; ",
+        "this model has no other terms.",
+        call. = FALSE
+      )
+    }
+  }
+
   w <- mod$weights
 
   if (is.null(w) || length(w) != nrow(X)) {
@@ -153,4 +175,73 @@
     stop("'family' must be an object of class 'family' (see ?family), e.g. Gamma(link = \"inverse\").", call. = FALSE)
   }
   family
+}
+
+# Refits a glm with the same response, family, prior weights and offset as
+# 'mod', but on its explanatory variables (including the intercept column)
+# each rescaled to Euclidean unit length via multiColl::lu(), with no
+# further intercept added (the rescaled intercept column already plays
+# that role). This is the MacKinnon and Puterman (1989) transformation:
+# scale the columns of X to unit length *before* fitting, then read
+# collinearity directly off X'W(beta)X with no further transformation --
+# used by condition_number(..., method = "MP").
+#
+# Note this refit is mathematically guaranteed to reproduce the same
+# fitted values (and hence the same IRLS weights) as 'mod': a GLM's fitted
+# values are invariant under any invertible linear reparametrisation of the
+# columns of X (here, dividing each column by a positive constant), since
+# the linear predictor X %*% beta is unchanged by rescaling a column and
+# inversely rescaling its coefficient. The refit is nonetheless carried out
+# explicitly, rather than reusing mod$weights directly, to mirror the
+# original published definition exactly and to stay correct even if that
+# invariance were ever broken in practice (e.g. non-convergence).
+.refit_lu_glm <- function(mod) {
+  if (!inherits(mod, "glm")) {
+    stop("A 'glm' object was expected.", call. = FALSE)
+  }
+  if (!requireNamespace("multiColl", quietly = TRUE)) {
+    stop(
+      "Computing the MacKinnon-Puterman (1989) condition number (method = \"MP\") requires the ",
+      "'multiColl' package, which supplies lu(), the unit-length transformation used to rescale ",
+      "the explanatory variables before refitting the model. Please install it.",
+      call. = FALSE
+    )
+  }
+
+  X <- stats::model.matrix(mod)
+  if (ncol(X) < 2L) {
+    stop("method = \"MP\" needs at least two columns in the design matrix.", call. = FALSE)
+  }
+
+  X_lu <- multiColl::lu(X)
+  colnames(X_lu) <- colnames(X)
+
+  y <- mod$y
+  if (is.null(y)) {
+    stop(
+      "The 'glm' object does not retain the response ('model$y' is NULL); refit it with y = TRUE ",
+      "(the default in glm()) before calling condition_number(model, method = \"MP\").",
+      call. = FALSE
+    )
+  }
+
+  frame <- data.frame(.y = y, X_lu, check.names = FALSE)
+  formula_lu <- stats::reformulate(
+    termlabels = paste0("`", colnames(X_lu), "`"),
+    response = ".y",
+    intercept = FALSE
+  )
+
+  args <- list(formula = formula_lu, data = frame, family = mod$family)
+
+  w0 <- mod$prior.weights
+  if (!is.null(w0) && !isTRUE(all.equal(unname(w0), rep(1, length(w0))))) {
+    args$weights <- w0
+  }
+  off <- mod$offset
+  if (!is.null(off) && !isTRUE(all.equal(unname(off), rep(0, length(off))))) {
+    args$offset <- off
+  }
+
+  do.call(stats::glm, args)
 }

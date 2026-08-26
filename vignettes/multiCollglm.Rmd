@@ -1,0 +1,135 @@
+---
+title: "Introducción a multiCollglm"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introducción a multiCollglm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`multiCollglm` diagnostica colinealidad en modelos lineales generalizados
+(GLM), generalizando a cualquier familia y función de enlace los
+diagnósticos clásicos de regresión lineal (número de condición,
+descomposición de Belsley-Kuh-Welsch y el Redefined Variance Inflation
+Factor, RVIF). Los tres se calculan sobre la matriz de diseño ponderada por
+los pesos IRLS en convergencia y, por defecto, escalada a longitud unitaria
+por columna (sin centrar).
+
+## Instalación
+
+```r
+# install.packages("remotes")
+remotes::install_github("<usuario-github>/multiCollglm")
+```
+
+## Uso con `glm`
+
+```{r}
+library(multiCollglm)
+
+set.seed(1)
+n <- 200
+x1 <- rnorm(n)
+x2 <- x1 + rnorm(n, sd = 0.05) # casi colineal con x1
+x3 <- rnorm(n)
+x4 <- rnorm(n)
+mu <- exp(1 + 0.3 * x1 + 0.3 * x2 - 0.2 * x3 + 0.1 * x4)
+y <- rgamma(n, shape = 5, rate = 5 / mu)
+
+mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"))
+```
+
+```{r}
+condition_number(mod)
+```
+
+```{r}
+bkw_diagnostics(mod)
+```
+
+```{r}
+rvif_diagnostics(mod)
+```
+
+## Cambiar la transformación de los datos
+
+Las tres funciones aceptan los argumentos `center` y `scale`, aplicados a la
+matriz de diseño ponderada por IRLS antes de calcular cualquier
+diagnóstico. Admiten los mismos valores que `scale()` de base R:
+
+- `center`: `FALSE` (por defecto), `TRUE` (resta la media de cada columna),
+  o un vector numérico de valores a restar por columna.
+- `scale`: `"unit"` (por defecto; columnas de longitud euclídea/L2 unitaria,
+  la transformación originalmente propuesta), `TRUE` (escalado
+  root-mean-square), `FALSE` (sin escalado), o un vector numérico de
+  divisores por columna.
+
+```{r}
+condition_number(mod, scale = TRUE) # escalado root-mean-square en vez de longitud unitaria
+```
+
+**No usar `center = TRUE`** en un modelo con intercepto salvo que sepas lo
+que haces: para un GLM de enlace canónico, la matriz de diseño ponderada
+por IRLS cumple `Xw %*% coef(mod) == 1` exactamente, así que centrar la
+columna del intercepto reduce el rango de la matriz en exactamente uno de
+forma garantizada. Esta es precisamente la razón por la que Belsley, Kuh y
+Welsch (1980) desaconsejan centrar para diagnósticos de colinealidad;
+`bkw_diagnostics()` y `rvif_diagnostics()` lo detectan y lanzan un error
+informativo en lugar de devolver `NaN`.
+
+```{r, error = TRUE}
+bkw_diagnostics(mod, center = TRUE)
+```
+
+## Uso con `glmnet` / `cv.glmnet`
+
+Cuando el modelo es un ajuste regularizado (`glmnet` o `cv.glmnet`), no hay
+ajuste IRLS ni pesos de convergencia propios. `multiCollglm` identifica el
+conjunto activo de variables en el `lambda` indicado y reajusta un
+`glm()` estándar sobre ellas para poder calcular los mismos diagnósticos:
+
+```r
+library(glmnet)
+
+x <- as.matrix(data.frame(x1, x2, x3, x4))
+cvfit <- cv.glmnet(x, y, family = Gamma(link = "inverse"))
+
+condition_number(cvfit, x = x, y = y, family = Gamma(link = "inverse"), s = "lambda.min")
+bkw_diagnostics(cvfit, x = x, y = y, family = Gamma(link = "inverse"), s = "lambda.min")
+rvif_diagnostics(cvfit, x = x, y = y, family = Gamma(link = "inverse"), s = "lambda.min")
+```
+
+El resultado incluye también `active_vars` y `dropped_vars`, para saber
+exactamente sobre qué submodelo se calculó el diagnóstico.
+
+## Regla práctica de BKW
+
+`bkw_diagnostics()` marca como sospechosa cualquier dimensión cuyo índice
+de condición sea `>= 10` y en la que al menos dos coeficientes tengan una
+proporción de varianza `>= 0.5` (Belsley, Kuh y Welsch, 1980). Ambos
+umbrales son ajustables vía `index_threshold` y `proportion_threshold`.
+
+## Más allá de esta guía
+
+Esta vignette cubre el uso básico del paquete. La [web del
+paquete](https://<usuario-github>.github.io/multiCollglm/articles/index.html)
+incluye además una serie de **artículos de reproducción**: casos reales de
+la literatura en los que la colinealidad se diagnosticó sin aplicar la
+transformación correcta de los datos, junto con la comparación de esos
+resultados frente a los que produce `multiCollglm`.
+
+## Referencias
+
+- Belsley, D.A., Kuh, E. y Welsch, R.E. (1980). *Regression Diagnostics:
+  Identifying Influential Data and Sources of Collinearity*. Wiley.
+- Salmeron, R., Garcia, C.B. y Garcia, J. (2025). A redefined Variance
+  Inflation Factor: overcoming the limitations of the Variance Inflation
+  Factor. *Computational Economics*, 65, 337-363.
+  <https://doi.org/10.1007/s10614-024-10575-8>

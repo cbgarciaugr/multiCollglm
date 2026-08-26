@@ -18,6 +18,7 @@ condition_number(model, ...)
   offset = NULL,
   center = FALSE,
   scale = "unit",
+  method = NULL,
   ...
 )
 
@@ -31,6 +32,7 @@ condition_number(model, ...)
   offset = NULL,
   center = FALSE,
   scale = "unit",
+  method = NULL,
   ...
 )
 }
@@ -60,27 +62,100 @@ it can also be \code{"lambda.min"} or \code{"lambda.1se"}.}
 proposed and required to detect non-essential collinearity involving
 the intercept) or any value accepted by \code{\link[=scale]{scale()}}'s own \code{center}
 argument: \code{TRUE} to center each column on its mean, or a numeric
-vector of per-column values to subtract. For a canonical-link GLM
-with an intercept, centering the IRLS-weighted design matrix is
-mathematically guaranteed to drop its rank by exactly one (since
-\code{sqrt(w) * eta} is then constant), which \code{\link[=bkw_diagnostics]{bkw_diagnostics()}} and
-\code{\link[=rvif_diagnostics]{rvif_diagnostics()}} report as an error rather than silent \code{NaN}s;
+vector of per-column values to subtract. Centering an IRLS-weighted
+design matrix that includes an intercept can leave it exactly
+rank-deficient for \emph{some} family/link combinations, but this is not a
+general canonical-link fact: it happens whenever \code{sqrt(w) *
+linear.predictors} is constant across all observations, which is a
+structural identity of the \strong{Gamma family with its canonical
+(inverse) link} (\code{sqrt(w) = mu}, \code{eta = 1/mu}, so their product is
+exactly 1 for every observation) -- and, notably for Gamma with that
+link, this holds \strong{regardless of whether an intercept is present},
+so dropping the intercept does not avoid it there (see \code{method = "OZ"}
+below). It does \emph{not} occur in general for other canonical links such
+as the logit (binomial can be centered with an intercept without
+issue). When it does occur, \code{\link[=bkw_diagnostics]{bkw_diagnostics()}} and
+\code{\link[=rvif_diagnostics]{rvif_diagnostics()}} report it as an error rather than silent \code{NaN}s;
 this is the classical reason Belsley, Kuh and Welsch advise against
-centering for collinearity diagnostics.}
+centering for collinearity diagnostics. Ignored whenever \code{method} is
+not \code{NULL} (see below).}
 
 \item{scale}{Either \code{"unit"} (default; each column is scaled to
 Euclidean/L2 unit length, as originally proposed and required for the
 classical condition-index thresholds and the RVIF formula) or any
 value accepted by \code{\link[=scale]{scale()}}'s own \code{scale} argument: \code{TRUE} for
 root-mean-square scaling, \code{FALSE} for no scaling, or a numeric vector
-of per-column divisors.}
+of per-column divisors. Ignored whenever \code{method} is not \code{NULL} (see
+below).}
+
+\item{method}{Optional shortcut selecting one of four condition-number
+definitions; when supplied it overrides whatever \code{center}/\code{scale} were
+passed and labels the result accordingly (\code{NC_RAW}, \code{NC_MP}, \code{NC_WS} or
+\code{NC_OZ}):
+\describe{
+\item{\code{"RAW"}}{No transformation at all. The condition number is
+computed directly on \eqn{X'WX} -- the IRLS-weighted design matrix
+(including the intercept column, if any), neither centered nor
+scaled (equivalent to \code{center = FALSE, scale = FALSE}). This is the
+"original, uncentered and unscaled data" baseline against which
+\code{"WS"}'s unit-length scaling can be compared: because the
+explanatory variables are typically on very different scales,
+\code{NC_RAW} is dominated by that scale disparity and is usually far
+larger than \code{NC_WS}, even when the underlying collinearity is the
+same -- which is exactly why Weissfeld and Sereika (1991) introduced
+the unit-length rescaling in the first place.}
+\item{\code{"MP"}}{MacKinnon and Puterman (1989). The \emph{original}
+explanatory variables (including the intercept column) are first
+rescaled to unit Euclidean length with \code{\link[multiColl:lu]{multiColl::lu()}}, the GLM
+is \strong{refit} on those rescaled variables (with no further
+intercept, since the rescaled intercept column already plays that
+role), and the condition number is then computed on that refit's
+IRLS-weighted information matrix with \strong{no further
+transformation} (equivalent to \code{center = FALSE, scale = FALSE}
+applied to the refit). Refitting is mathematically redundant --
+a GLM's fitted values, and hence its IRLS weights at convergence,
+are invariant to any linear rescaling of the columns of \code{X} -- but
+is carried out explicitly to mirror the original definition (and
+requires the \pkg{multiColl} package).}
+\item{\code{"WS"}}{Weissfeld and Sereika (1991). The GLM is fit on the
+original variables and the IRLS-weighted information matrix is
+scaled to unit column length \emph{afterwards}; equivalent to
+\code{center = FALSE, scale = "unit"}, the default of this function and
+of \code{\link[=bkw_diagnostics]{bkw_diagnostics()}}/\code{\link[=rvif_diagnostics]{rvif_diagnostics()}}.}
+\item{\code{"OZ"}}{Ozkale (2019). The Weissfeld-Sereika procedure, but the
+IRLS-weighted design matrix is additionally \emph{centered} before
+being scaled to unit length (equivalent to \code{center = TRUE, scale =
+"unit"}). If \code{model} has an intercept, its column is \strong{dropped}
+from the design matrix before centering/scaling (the IRLS weights
+used are still those of the original, with-intercept fit): every
+worked example in Ozkale (2019, Sec. 5) fits the GLM \emph{without} an
+intercept term, and for most family/link combinations dropping the
+intercept is exactly what avoids the exact rank-deficiency described
+under \code{center} above. \strong{Exception:} for the Gamma family with
+its canonical (inverse) link, that rank-deficiency is structural
+regardless of whether an intercept is present or has been dropped
+(\code{sqrt(w) * linear.predictors} is exactly 1 for every observation
+either way) -- this is exactly what happens in Ozkale (2019, Sec.
+5.3)'s own Gamma example, where the smallest eigenvalue she reports
+(4.0371e-17) is already at floating-point noise level; \code{NC_OZ} will
+then legitimately be reported as \code{Inf} with a warning, rather than
+the platform-dependent large-but-nominally-finite number her software
+happened to print.}
+}
+
+Leave as \code{NULL} (the default) to use \code{center}/\code{scale} directly, exactly
+as in earlier versions of this function.}
 }
 \value{
 An object of class \code{multicollglm_cn} with, among others, the
-eigenvalues of \eqn{X_{unit}'X_{unit}}, the condition number on the
-eigenvalue scale (\code{condition_number}), and the classical condition
-index on the singular-value scale (\code{condition_index}, i.e.
-\code{sqrt(condition_number)}).
+eigenvalues used (of \eqn{X'WX} for \code{method = "RAW"}, of
+\eqn{X_{unit}'X_{unit}} for \code{"WS"}/\code{"OZ"}, or, for \code{method = "MP"}, of
+the refit's \eqn{X_{lu}'WX_{lu}}), the condition number on the
+eigenvalue scale (\code{condition_number}), the classical condition index
+on the singular-value scale (\code{condition_index}, i.e.
+\code{sqrt(condition_number)}), and, when \code{method} was supplied, \code{method}
+(\code{"RAW"}/\code{"MP"}/\code{"WS"}/\code{"OZ"}) and \code{nc_label}
+(\code{"NC_RAW"}/\code{"NC_MP"}/\code{"NC_WS"}/\code{"NC_OZ"}).
 }
 \description{
 Computes the condition number over the design matrix weighted by the
@@ -96,5 +171,24 @@ mu <- exp(1 + 0.3 * x1 + 0.3 * x2 - 0.2 * x3 + 0.1 * x4)
 y <- rgamma(n, shape = 5, rate = 5 / mu)
 mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"))
 condition_number(mod)
+condition_number(mod, method = "RAW") # X'WX, no centering or scaling
+condition_number(mod, method = "WS") # same numbers, labeled NC_WS
+condition_number(mod, method = "OZ")
+\dontrun{
+condition_number(mod, method = "MP") # requires the 'multiColl' package
+}
 
+}
+\references{
+Mackinnon, M.J. and Puterman, M.L. (1989). Collinearity in generalized
+linear models. Communications in Statistics - Theory and Methods, 18(9),
+3463-3472. \doi{10.1080/03610928908830102}
+
+Weissfeld, L.A. and Sereika, S.M. (1991). A multicollinearity diagnostic
+for generalized linear models. Communications in Statistics - Theory and
+Methods, 20(4), 1183-1198. \doi{10.1080/03610929108830558}
+
+Ozkale, M.R. (2019). The red indicator and corrected VIFs in generalized
+linear models. Communications in Statistics - Simulation and
+Computation. \doi{10.1080/03610918.2019.1639740}
 }

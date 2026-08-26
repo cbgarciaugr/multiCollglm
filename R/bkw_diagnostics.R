@@ -51,11 +51,15 @@ bkw_diagnostics.glm <- function(model, index_threshold = 10, proportion_threshol
   if (min(d) <= sqrt(.Machine$double.eps) * max(d)) {
     stop(
       "The (weighted, transformed) design matrix is exactly rank-deficient, so the ",
-      "variance-decomposition proportions are undefined. Note that centering (center = TRUE) ",
-      "an IRLS-weighted design matrix that includes an intercept is mathematically guaranteed ",
-      "to drop its rank by one for canonical-link GLMs, which is exactly why Belsley, Kuh and ",
-      "Welsch recommend against centering for collinearity diagnostics; use the default ",
-      "center = FALSE, or remove the exact collinearity from the data.",
+      "variance-decomposition proportions are undefined. Two known causes: (1) centering ",
+      "(center = TRUE) an IRLS-weighted design matrix that includes an intercept, for some ",
+      "family/link combinations (this is not a general canonical-link fact -- e.g. binomial ",
+      "with the logit link is unaffected); and (2) the Gamma family with its canonical ",
+      "(inverse) link, for which sqrt(w) * linear.predictors is exactly 1 for every ",
+      "observation regardless of whether an intercept is present, so removing the intercept ",
+      "does not avoid it there. This is exactly why Belsley, Kuh and Welsch recommend against ",
+      "centering for collinearity diagnostics; use the default center = FALSE, or remove the ",
+      "exact collinearity from the data.",
       call. = FALSE
     )
   }
