@@ -34,10 +34,10 @@
 #'   root-mean-square scaling, `FALSE` for no scaling, or a numeric vector
 #'   of per-column divisors. Ignored whenever `method` is not `NULL` (see
 #'   below).
-#' @param method Optional shortcut selecting one of four condition-number
+#' @param method Optional shortcut selecting one of five condition-number
 #'   definitions; when supplied it overrides whatever `center`/`scale` were
-#'   passed and labels the result accordingly (`NC_RAW`, `NC_MP`, `NC_WS`
-#'   or `NC_OZ`):
+#'   passed and labels the result accordingly (`NC_RAW`, `NC_MP`, `NC_MS`,
+#'   `NC_WS` or `NC_OZ`):
 #'   \describe{
 #'     \item{`"RAW"`}{No transformation at all. The condition number is
 #'       computed directly on \eqn{X'WX} -- the IRLS-weighted design matrix
@@ -63,6 +63,20 @@
 #'       are invariant to any linear rescaling of the columns of `X` -- but
 #'       is carried out explicitly to mirror the original definition (and
 #'       requires the \CRANpkg{multiColl} package).}
+#'     \item{`"MS"`}{Marx and Smith (1990). Like `"MP"`, a transform-then-fit
+#'       method, but the explanatory variables (excluding the intercept
+#'       column, if any -- a constant column of ones cannot itself be
+#'       centered and rescaled to unit length) are first **centered on their
+#'       own mean and then rescaled to unit Euclidean length**, the GLM is
+#'       **refit** on those centered-and-scaled variables (with an ordinary
+#'       intercept re-added whenever the original model had one), and the
+#'       condition number is computed on that refit's IRLS-weighted
+#'       information matrix with **no further transformation**. Unlike
+#'       `"MP"`'s pure rescaling, centering here generally shifts the fitted
+#'       values themselves (the refit intercept absorbs the new baseline),
+#'       so the refit is a genuinely different fit from `model`, exactly as
+#'       Marx and Smith (1990) prescribe for their weighted multicollinearity
+#'       diagnostics in logistic regression.}
 #'     \item{`"WS"`}{Weissfeld and Sereika (1991). The GLM is fit on the
 #'       original variables and the IRLS-weighted information matrix is
 #'       scaled to unit column length *afterwards*; equivalent to
@@ -95,18 +109,24 @@
 #'
 #' @return An object of class `multicollglm_cn` with, among others, the
 #'   eigenvalues used (of \eqn{X'WX} for `method = "RAW"`, of
-#'   \eqn{X_{unit}'X_{unit}} for `"WS"`/`"OZ"`, or, for `method = "MP"`,
-#'   of the refit's \eqn{X_{lu}'WX_{lu}}), the condition number on the
+#'   \eqn{X_{unit}'X_{unit}} for `"WS"`/`"OZ"`, or, for `method = "MP"`/`"MS"`,
+#'   of the respective refit's \eqn{X_{lu}'WX_{lu}} or \eqn{X_{cu}'WX_{cu}}),
+#'   the condition number on the
 #'   eigenvalue scale (`condition_number`), the classical condition index
 #'   on the singular-value scale (`condition_index`, i.e.
 #'   `sqrt(condition_number)`), and, when `method` was supplied, `method`
-#'   (`"RAW"`/`"MP"`/`"WS"`/`"OZ"`) and `nc_label`
-#'   (`"NC_RAW"`/`"NC_MP"`/`"NC_WS"`/`"NC_OZ"`).
+#'   (`"RAW"`/`"MP"`/`"MS"`/`"WS"`/`"OZ"`) and `nc_label`
+#'   (`"NC_RAW"`/`"NC_MP"`/`"NC_MS"`/`"NC_WS"`/`"NC_OZ"`).
 #'
 #' @references
 #' Mackinnon, M.J. and Puterman, M.L. (1989). Collinearity in generalized
 #' linear models. Communications in Statistics - Theory and Methods, 18(9),
 #' 3463-3472. \doi{10.1080/03610928908830102}
+#'
+#' Marx, B.D. and Smith, E.P. (1990). Weighted multicollinearity in logistic
+#' regression: diagnostics and biased estimation techniques with an example
+#' from lake acidification. Canadian Journal of Fisheries and Aquatic
+#' Sciences, 47(6), 1128-1135. \doi{10.1139/f90-131}
 #'
 #' Weissfeld, L.A. and Sereika, S.M. (1991). A multicollinearity diagnostic
 #' for generalized linear models. Communications in Statistics - Theory and
@@ -127,6 +147,7 @@
 #' condition_number(mod, method = "RAW") # X'WX, no centering or scaling
 #' condition_number(mod, method = "WS") # same numbers, labeled NC_WS
 #' condition_number(mod, method = "OZ")
+#' condition_number(mod, method = "MS") # center + unit length, then refit
 #' \dontrun{
 #' condition_number(mod, method = "MP") # requires the 'multiColl' package
 #' }
@@ -141,13 +162,21 @@ condition_number.glm <- function(model, center = FALSE, scale = "unit", method =
   drop_intercept <- FALSE
 
   if (!is.null(method)) {
-    method <- match.arg(method, c("RAW", "MP", "WS", "OZ"))
+    method <- match.arg(method, c("RAW", "MP", "MS", "WS", "OZ"))
 
     if (identical(method, "MP")) {
       refit <- .refit_lu_glm(model)
       out <- condition_number.glm(refit, center = FALSE, scale = FALSE)
       out$method <- "MP"
       out$nc_label <- "NC_MP"
+      return(out)
+    }
+
+    if (identical(method, "MS")) {
+      refit <- .refit_center_unit_glm(model)
+      out <- condition_number.glm(refit, center = FALSE, scale = FALSE)
+      out$method <- "MS"
+      out$nc_label <- "NC_MS"
       return(out)
     }
 
@@ -261,6 +290,7 @@ print.multicollglm_cn <- function(x, digits = 4, ...) {
     if (is.null(x$method)) "" else x$method,
     "RAW" = "X'WX",
     "MP"  = "X_lu'WX_lu",
+    "MS"  = "X_cu'WX_cu",
     "X_unit'X_unit" # default for "WS", "OZ" and method = NULL
   )
   cat(sprintf("Eigenvalues of %s (decreasing order):\n", mat_label))

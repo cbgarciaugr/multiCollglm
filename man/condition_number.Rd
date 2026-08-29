@@ -88,10 +88,10 @@ root-mean-square scaling, \code{FALSE} for no scaling, or a numeric vector
 of per-column divisors. Ignored whenever \code{method} is not \code{NULL} (see
 below).}
 
-\item{method}{Optional shortcut selecting one of four condition-number
+\item{method}{Optional shortcut selecting one of five condition-number
 definitions; when supplied it overrides whatever \code{center}/\code{scale} were
-passed and labels the result accordingly (\code{NC_RAW}, \code{NC_MP}, \code{NC_WS} or
-\code{NC_OZ}):
+passed and labels the result accordingly (\code{NC_RAW}, \code{NC_MP}, \code{NC_MS},
+\code{NC_WS} or \code{NC_OZ}):
 \describe{
 \item{\code{"RAW"}}{No transformation at all. The condition number is
 computed directly on \eqn{X'WX} -- the IRLS-weighted design matrix
@@ -117,6 +117,25 @@ a GLM's fitted values, and hence its IRLS weights at convergence,
 are invariant to any linear rescaling of the columns of \code{X} -- but
 is carried out explicitly to mirror the original definition (and
 requires the \pkg{multiColl} package).}
+\item{\code{"MS"}}{Marx and Smith (1990). Like \code{"MP"}, a transform-then-fit
+method, but the explanatory variables (excluding the intercept
+column, if any -- a constant column of ones cannot itself be
+centered and rescaled to unit length) are first \strong{centered on
+their own mean and then rescaled to unit Euclidean length}, the
+GLM is \strong{refit} on those centered-and-scaled variables (with an
+ordinary intercept re-added whenever the original model had one),
+and the condition number is computed on that refit's IRLS-weighted
+information matrix with \strong{no further transformation}. Unlike
+\code{"MP"}'s pure rescaling, centering here generally shifts the fitted
+values themselves (the refit intercept absorbs the new baseline),
+so the refit is a genuinely different fit from \code{model}, exactly as
+Marx and Smith (1990) prescribe for their weighted multicollinearity
+diagnostics in logistic regression. For a model with \strong{no}
+intercept, all columns are centered and the refit also has no
+intercept; this can fail to converge for some family/link
+combinations (e.g. Gamma with the inverse link, which needs
+positive fitted values) since centering removes the constant
+baseline a no-intercept model relies on.}
 \item{\code{"WS"}}{Weissfeld and Sereika (1991). The GLM is fit on the
 original variables and the IRLS-weighted information matrix is
 scaled to unit column length \emph{afterwards}; equivalent to
@@ -149,13 +168,14 @@ as in earlier versions of this function.}
 \value{
 An object of class \code{multicollglm_cn} with, among others, the
 eigenvalues used (of \eqn{X'WX} for \code{method = "RAW"}, of
-\eqn{X_{unit}'X_{unit}} for \code{"WS"}/\code{"OZ"}, or, for \code{method = "MP"}, of
-the refit's \eqn{X_{lu}'WX_{lu}}), the condition number on the
+\eqn{X_{unit}'X_{unit}} for \code{"WS"}/\code{"OZ"}, or, for \code{method = "MP"}/\code{"MS"},
+of the respective refit's \eqn{X_{lu}'WX_{lu}} or \eqn{X_{cu}'WX_{cu}}), the
+condition number on the
 eigenvalue scale (\code{condition_number}), the classical condition index
 on the singular-value scale (\code{condition_index}, i.e.
 \code{sqrt(condition_number)}), and, when \code{method} was supplied, \code{method}
-(\code{"RAW"}/\code{"MP"}/\code{"WS"}/\code{"OZ"}) and \code{nc_label}
-(\code{"NC_RAW"}/\code{"NC_MP"}/\code{"NC_WS"}/\code{"NC_OZ"}).
+(\code{"RAW"}/\code{"MP"}/\code{"MS"}/\code{"WS"}/\code{"OZ"}) and \code{nc_label}
+(\code{"NC_RAW"}/\code{"NC_MP"}/\code{"NC_MS"}/\code{"NC_WS"}/\code{"NC_OZ"}).
 }
 \description{
 Computes the condition number over the design matrix weighted by the
@@ -174,6 +194,7 @@ condition_number(mod)
 condition_number(mod, method = "RAW") # X'WX, no centering or scaling
 condition_number(mod, method = "WS") # same numbers, labeled NC_WS
 condition_number(mod, method = "OZ")
+condition_number(mod, method = "MS") # center + unit length, then refit
 \dontrun{
 condition_number(mod, method = "MP") # requires the 'multiColl' package
 }
@@ -183,6 +204,11 @@ condition_number(mod, method = "MP") # requires the 'multiColl' package
 Mackinnon, M.J. and Puterman, M.L. (1989). Collinearity in generalized
 linear models. Communications in Statistics - Theory and Methods, 18(9),
 3463-3472. \doi{10.1080/03610928908830102}
+
+Marx, B.D. and Smith, E.P. (1990). Weighted multicollinearity in logistic
+regression: diagnostics and biased estimation techniques with an example
+from lake acidification. Canadian Journal of Fisheries and Aquatic
+Sciences, 47(6), 1128-1135. \doi{10.1139/f90-131}
 
 Weissfeld, L.A. and Sereika, S.M. (1991). A multicollinearity diagnostic
 for generalized linear models. Communications in Statistics - Theory and

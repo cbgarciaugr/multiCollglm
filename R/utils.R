@@ -245,3 +245,102 @@
 
   do.call(stats::glm, args)
 }
+
+# Refits a glm with the same response, family, prior weights and offset as
+# 'mod', but on its explanatory variables (EXCLUDING the intercept column,
+# if any) each centered on its own mean and then rescaled to Euclidean unit
+# length, with an ordinary intercept term re-added. This is the Marx and
+# Smith (1990) transformation for weighted multicollinearity diagnostics in
+# logistic (and, here, any GLM) regression: center and unit-length-scale the
+# explanatory variables *before* fitting, then read collinearity directly
+# off the refit's own X'W(beta)X with no further transformation -- used by
+# condition_number(..., method = "MS").
+#
+# The intercept column itself is never centered (a constant column of ones,
+# centered, is identically zero and cannot be rescaled to unit length); Marx
+# and Smith (1990) make the same exclusion explicitly when constructing
+# their weighted variance inflation factors ("there is [no WVIF] associated
+# with the intercept since the centering and scaling ... does not involve a
+# constant column of ones"). A plain intercept is instead re-added to the
+# refit formula whenever the original model had one.
+#
+# Unlike method = "MP" (a pure rescaling), centering here generally changes
+# the fitted values themselves (mean-centering shifts the linear predictor's
+# baseline, which the refit intercept absorbs) -- so, unlike .refit_lu_glm(),
+# this refit is NOT expected to reproduce 'mod's original IRLS weights
+# exactly; it is a genuinely different fit, on the centered-and-scaled
+# variables, exactly as Marx and Smith (1990) prescribe.
+.refit_center_unit_glm <- function(mod) {
+  if (!inherits(mod, "glm")) {
+    stop("A 'glm' object was expected.", call. = FALSE)
+  }
+
+  X <- stats::model.matrix(mod)
+  has_intercept <- "(Intercept)" %in% colnames(X)
+  Xvars <- if (has_intercept) X[, colnames(X) != "(Intercept)", drop = FALSE] else X
+
+  if (ncol(Xvars) < 1L) {
+    stop(
+      "method = \"MS\" needs at least one non-intercept column in the design matrix.",
+      call. = FALSE
+    )
+  }
+
+  Xc <- sweep(Xvars, 2L, colMeans(Xvars), "-")
+  col_norms <- sqrt(colSums(Xc^2))
+  if (any(col_norms == 0)) {
+    zero_cols <- colnames(Xvars)[col_norms == 0]
+    stop(
+      sprintf(
+        "Columns [%s] have zero norm after centering (method = \"MS\"); they cannot be rescaled to unit length.",
+        paste(zero_cols, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+  X_cu <- sweep(Xc, 2L, col_norms, "/")
+  colnames(X_cu) <- colnames(Xvars)
+
+  y <- mod$y
+  if (is.null(y)) {
+    stop(
+      "The 'glm' object does not retain the response ('model$y' is NULL); refit it with y = TRUE ",
+      "(the default in glm()) before calling condition_number(model, method = \"MS\").",
+      call. = FALSE
+    )
+  }
+
+  frame <- data.frame(.y = y, X_cu, check.names = FALSE)
+  formula_cu <- stats::reformulate(
+    termlabels = paste0("`", colnames(X_cu), "`"),
+    response = ".y",
+    intercept = has_intercept
+  )
+
+  args <- list(formula = formula_cu, data = frame, family = mod$family)
+
+  w0 <- mod$prior.weights
+  if (!is.null(w0) && !isTRUE(all.equal(unname(w0), rep(1, length(w0))))) {
+    args$weights <- w0
+  }
+  off <- mod$offset
+  if (!is.null(off) && !isTRUE(all.equal(unname(off), rep(0, length(off))))) {
+    args$offset <- off
+  }
+
+  tryCatch(
+    do.call(stats::glm, args),
+    error = function(e) {
+      stop(
+        "method = \"MS\" could not refit the model on the centered-and-unit-scaled ",
+        "explanatory variables: ", conditionMessage(e), ". This can happen when 'model' ",
+        "has no intercept: centering removes the mean from every column with nothing left ",
+        "to absorb the new baseline, which for some family/link combinations (e.g. Gamma ",
+        "with the inverse link, which requires positive fitted values) can make the IRLS ",
+        "iteration diverge. Marx and Smith (1990) developed this method for logistic ",
+        "regression models that do include an intercept.",
+        call. = FALSE
+      )
+    }
+  )
+}

@@ -1,4 +1,4 @@
-url: https://cbgarciaugr.github.io/multiCollglm/
+url: https://<usuario-github>.github.io/multiCollglm/
 
 template:
   bootstrap: 5
@@ -28,6 +28,14 @@ reference:
   - condition_number
   - bkw_diagnostics
   - rvif_diagnostics
+- title: Datasets de ejemplo
+  desc: >
+    Datos reales usados en los artículos de reproducción (ver más abajo).
+  contents:
+  - Nitrogen
+  - Mine
+  - LeeCancer
+  - Plastic
 - title: Paquete
   contents:
   - multiCollglm-package
@@ -39,7 +47,12 @@ articles:
     la transformación correcta de los datos, reproducidos y comparados con
     los resultados de multiCollglm.
   contents:
+  - reproduccion-lee-cancer
+  - reproduccion-nitrogen
+  - reproduccion-mines
+  - reproduccion-bodyfat
+  - reproduccion-plastic
   - reproduccion-plantilla
-  # A medida que se añadan artículos reales (a partir de
+  # A medida que se añadan más artículos (a partir de
   # reproduccion-plantilla.Rmd), listarlos aquí uno por línea, por ejemplo:
   # - reproduccion-perez-2019-consumo-energia

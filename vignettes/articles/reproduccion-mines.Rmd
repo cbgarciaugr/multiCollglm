@@ -1,0 +1,162 @@
+---
+title: "Reproducción: datos de fracturas en minas de carbón (Mine)"
+description: >
+  Se reproduce el diagnóstico de colinealidad del dataset de fracturas de
+  techo en minas de carbón, usado por cinco trabajos con distintos GLM de
+  conteo, y se muestra que el método "RAW" (sin transformar) reproduce
+  exactamente el valor más citado en la literatura.
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Contexto
+
+El dataset `Mine` recoge 44 observaciones de fracturas de techo registradas
+en minas de carbón de la región de Apalaches (Virginia Occidental), con
+cuatro predictores continuos: espesor de la sobrecarga interna, porcentaje
+de extracción de la capa inferior ya minada, altura de la capa inferior y
+tiempo transcurrido desde la apertura de la mina. Es la aplicación real
+compartida por cinco de los trabajos revisados, cada uno ajustando un GLM
+de conteo distinto: Kurtoglu y Ozkale (2019) [`review55`] y Kurtoglu y
+Ozkale (2019) [`review118`] (mismos autores, un estimador ridge y un
+estimador Liu restringidos, respectivamente, con Poisson y enlace
+logarítmico); Sami, Amin y Butt (2022) [`review8`] (Conway-Maxwell-Poisson,
+estimador ridge "COMPRR"); Hussein y Algamal (2026) [`review115`]
+(regresión Bell, estimador tipo Kibria-Lukman); y Sami et al. (2026)
+[`review117`] (Weibull discreta, estimador ridge "DWRE").
+
+`review8` afirma analizar una distribución distinta pero no aporta ninguna
+medida diagnóstica propia (que debería diferir según la distribución),
+limitándose a citar un trabajo previo para justificar que el dataset
+presenta colinealidad. `review117` hace lo mismo, citando a `review8`
+pese a usar también una distribución distinta; además, a partir del código
+del apéndice de `review117` el diagnóstico parece calcularse sobre la
+$X'X$ sin ponderar, y aunque el código incluye un paso de estandarización,
+nunca llega a aplicarse.
+
+Nota sobre los datos: dos errores de transcripción presentes en algunas
+copias de este dataset (fila 30: `y = 22` en vez de `y = 2`; fila 36:
+`x1 = 0` en vez de `x1 = 80`) se han corregido en `data(Mine)` tras
+contrastarlos con la tabla de datos del apéndice de un segundo trabajo.
+
+## Datos
+
+```{r}
+library(multiCollglm)
+data(Mine)
+str(Mine)
+
+mod <- glm(y ~ x1 + x2 + x3 + x4, family = poisson(link = "log"),
+           data = Mine)
+summary(mod)
+```
+
+## Diagnóstico original (panorama en la literatura)
+
+Kurtoglu y Ozkale (2019), aplicando Poisson con enlace logarítmico,
+obtienen un número de condición de **2093.32** que en un primer momento no
+pudimos reproducir con ninguna de las transformaciones centradas o
+escaladas del paquete. Hussein y Algamal (2026), con distribución Bell,
+obtienen **2139.89** (valor del mismo orden de magnitud, coherente con
+tratarse de una distribución de conteo distinta pero cercana a Poisson
+para estos datos).
+
+## Diagnóstico con multiCollglm
+
+```{r}
+metodos <- c("RAW", "MP", "MS", "WS", "OZ")
+
+tabla <- do.call(rbind, lapply(metodos, function(m) {
+  res <- tryCatch(condition_number(mod, method = m),
+                   error = function(e) NULL)
+  if (is.null(res)) {
+    data.frame(metodo = m, nc_label = NA, numero_condicion = NA,
+               indice_condicion = NA)
+  } else {
+    data.frame(metodo = m, nc_label = res$nc_label,
+               numero_condicion = res$condition_number,
+               indice_condicion = res$condition_index)
+  }
+}))
+knitr::kable(tabla, digits = 4,
+             col.names = c("method", "nc_label", "NC (autovalores)",
+                           "Índice de condición (raíz)"))
+```
+
+## Comparación
+
+El índice de condición (escala raíz) de `method = "RAW"` —sin ninguna
+transformación, directamente sobre $X'\hat{W}X$— es
+**`r round(condition_number(mod, method = "RAW")$condition_index, 4)`**,
+que coincide, hasta el redondeo, con el **2093.32** reportado por
+Kurtoglu y Ozkale (2019) [`review55`, `review118`]. Es decir: el valor que
+el texto describe inicialmente como "no reproducible" **sí se reproduce
+exactamente** en cuanto se añade el método `"RAW"` al paquete — lo que
+esos dos trabajos calculan es el índice de condición (raíz cuadrada del
+cociente de autovalores) de la matriz de información ponderada por IRLS,
+sin centrar ni reescalar en absoluto.
+
+Cuando los datos se reescalan a longitud unidad sin centrar (`"WS"`, que
+sí incluye el intercepto), el índice de condición baja a
+**`r round(condition_number(mod, method = "WS")$condition_index, 2)`**
+—del mismo orden que el valor de referencia (~28.8) que se obtiene con
+esta transformación—; la conclusión de colinealidad severa se mantiene,
+pero con un valor mucho más moderado y estable, sin la dependencia de la
+escala relativa de las cuatro variables (medidas en unidades muy
+distintas: espesor, porcentaje, altura, años) que domina el `"RAW"`.
+
+No se ha podido verificar de forma independiente el valor de Hussein y
+Algamal (2026) para la regresión Bell, ya que esa familia no forma parte
+de las familias `glm()` de R base y requeriría un paquete adicional; se
+deja como valor reportado por la fuente original.
+
+| | Literatura | multiCollglm |
+|---|---|---|
+| Transformación | Ninguna (Poisson, enlace log, con intercepto) | `"RAW"`: sin transformar |
+| Valor (índice de condición, raíz) | 2093.32 (Kurtoglu y Ozkale 2019) | `r round(condition_number(mod, method = "RAW")$condition_index, 4)` |
+| Con reescalado a longitud unidad, sin centrar | — | `r round(condition_number(mod, method = "WS")$condition_index, 4)` |
+| Conclusión sobre colinealidad | Severa | Severa con `"RAW"`; sigue siendo relevante pero menos extrema con `"WS"` |
+
+## Conclusión
+
+Este dataset es un buen ejemplo de por qué merece la pena incluir
+`method = "RAW"` como línea base explícita: el valor de referencia más
+citado en esta literatura para los datos de minas resulta ser,
+exactamente, el índice de condición sin ninguna transformación —no un
+error ni un cálculo no documentado, sino el caso más simple posible, que
+sencillamente no estaba contemplado como uno de los métodos publicados
+hasta que se añadió aquí. Comparado con `"WS"` (reescalado a longitud
+unidad, sin centrar), la magnitud del diagnóstico cambia sustancialmente
+porque las cuatro regresoras están en unidades muy distintas y el `"RAW"`
+está dominado por esa disparidad de escalas, no solo por la colinealidad
+subyacente.
+
+## Referencias
+
+- Kurtoglu, F. y Ozkale, M.R. (2019). Restricted ridge estimator in
+  generalized linear models: Monte Carlo simulation studies on Poisson
+  and binomial distributed responses. *Communications in Statistics -
+  Simulation and Computation*, 48(4), 1191-1218.
+  <https://doi.org/10.1080/03610918.2017.1408822>
+- Kurtoglu, F. y Ozkale, M.R. (2019). Restricted Liu estimator in
+  generalized linear models: Monte Carlo simulation studies on gamma and
+  Poisson distributed responses. *Hacettepe Journal of Mathematics and
+  Statistics*, 48(4), 1250-1276. <https://doi.org/10.15672/HJMS.2018.624>
+- Sami, F., Amin, M. y Butt, M.M. (2022). On the ridge estimation of the
+  Conway-Maxwell Poisson regression model with multicollinearity: Methods
+  and applications. *Concurrency and Computation: Practice and
+  Experience*, 34(1), e6477. <https://doi.org/10.1002/cpe.6477>
+- Hussein, S.M.J.A. y Algamal, Z.Y. (2026). A New Shrinkage Estimator for
+  the Bell Regression Model. *Thailand Statistician*, 24(2), 462-473.
+- Sami, F., Aljohani, H.M., Iqbal, K., Ghorashi, S. y Abu Bakar Siddique,
+  M. (2026). A new estimator for discrete Weibull regression model with
+  correlated variables: an illustrative example. *Journal of Statistical
+  Computation and Simulation*, 96(11), 2737-2757.
+  <https://doi.org/10.1080/00949655.2026.2636232>
+- Myers, R.H. (1990). *Classical and Modern Regression with
+  Applications* (2nd ed.). Duxbury Press.

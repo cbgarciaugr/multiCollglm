@@ -1,0 +1,166 @@
+---
+title: "Reproducción: datos Bodyfat (TH.data)"
+description: >
+  Se reproduce el diagnóstico de colinealidad del dataset bodyfat (Gamma,
+  enlace logarítmico) usado por cinco trabajos, y se muestra un hecho
+  estructural del enlace logarítmico Gamma que explica por qué dos de los
+  métodos del paquete coinciden exactamente en este caso.
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Contexto
+
+El dataset `bodyfat` del paquete `TH.data` recoge mediciones de
+composición corporal y antropometría de 71 mujeres alemanas sanas. La
+variable respuesta, `DEXfat`, es el porcentaje de grasa corporal medido
+por absorciometría de rayos X de doble energía (DXA); las regresoras
+incluyen edad, perímetros de cintura y cadera, anchura de codo y rodilla,
+y varias variables antropométricas derivadas (`anthro3a`, `anthro3b`,
+`anthro3c`, `anthro4`). El objetivo original es predecir la grasa
+corporal a partir de medidas antropométricas más simples.
+
+Cinco de los trabajos revisados usan este dataset bajo una distribución
+Gamma: Almuqrin y AbaOud (2025) [`review23`], Al-Ghamdi et al. (2025)
+[`review44`], Asar y Korkmaz (2022) [`review51`], Seifollahi et al. (2024)
+[`review76`] y El-Masry et al. (2025) [`review127`]. Todos afirman
+calcular el número de condición como la raíz cuadrada del cociente entre
+el autovalor máximo y el mínimo de $X'\hat{W}X$.
+
+## Datos
+
+```{r}
+library(multiCollglm)
+if (!requireNamespace("TH.data", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE)
+  message("El paquete 'TH.data' no está instalado; se omite este artículo.")
+}
+data("bodyfat", package = "TH.data")
+str(bodyfat)
+
+mod <- glm(DEXfat ~ age + waistcirc + hipcirc + elbowbreadth + kneebreadth +
+             anthro3a + anthro3b + anthro3c + anthro4,
+           family = Gamma(link = "log"), data = bodyfat)
+summary(mod)
+```
+
+## Diagnóstico original (panorama en la literatura)
+
+Almuqrin y AbaOud (2025), Al-Ghamdi et al. (2025) y El-Masry et al. (2025)
+reportan un valor idéntico, $CN = 3394.30$; ninguno de los tres indica
+explícitamente qué función de enlace utilizó, así que no hemos podido
+reproducir ese valor concreto. Asar y Korkmaz (2022) sí especifican
+enlace logarítmico y datos sin transformar, y obtienen $CN = 3410.63$.
+Seifollahi et al. (2024) también afirma usar enlace logarítmico pero
+reporta un valor distinto, $CN = 4026.23$ — una inconsistencia dentro de
+la propia literatura, ya que dos trabajos que dicen aplicar exactamente el
+mismo procedimiento (Gamma, log, sin transformar) no coinciden entre sí.
+
+## Diagnóstico con multiCollglm
+
+```{r}
+metodos <- c("RAW", "MP", "MS", "WS", "OZ")
+
+tabla <- do.call(rbind, lapply(metodos, function(m) {
+  res <- tryCatch(condition_number(mod, method = m),
+                   error = function(e) NULL)
+  if (is.null(res)) {
+    data.frame(metodo = m, nc_label = NA, numero_condicion = NA,
+               indice_condicion = NA)
+  } else {
+    data.frame(metodo = m, nc_label = res$nc_label,
+               numero_condicion = res$condition_number,
+               indice_condicion = res$condition_index)
+  }
+}))
+knitr::kable(tabla, digits = 4,
+             col.names = c("method", "nc_label", "NC (autovalores)",
+                           "Índice de condición (raíz)"))
+```
+
+Un hecho llamativo de esta tabla: `"MP"` y `"WS"` coinciden de forma
+**exacta** (no solo aproximada). La razón es estructural y específica de
+esta combinación familia/enlace: para un GLM Gamma con enlace
+**logarítmico**, el peso IRLS de cada observación en convergencia es
+
+$$w_i = \frac{1}{V(\mu_i)}\left(\frac{d\mu_i}{d\eta_i}\right)^2 = \frac{1}{\mu_i^2}\cdot\mu_i^2 = 1,$$
+
+es decir, **constante e igual a 1 para todas las observaciones**,
+independientemente de los valores ajustados. Puede comprobarse
+directamente:
+
+```{r}
+range(mod$weights)
+```
+
+Con pesos IRLS idénticamente 1, ponderar por $\hat{W}^{1/2}$ no hace nada
+(equivale a la matriz sin ponderar), así que reescalar a longitud unidad
+*antes* de ajustar (`"MP"`) o *después* de ajustar (`"WS"`) produce
+exactamente la misma matriz y, por tanto, el mismo número de condición.
+Esto es el análogo, para Gamma con enlace logarítmico, de la identidad ya
+documentada para Gamma con enlace inverso canónico (`sqrt(w) * eta ≡ 1`,
+véase `?condition_number`): cada combinación familia/enlace tiene su
+propia identidad estructural en los pesos IRLS, y conviene tenerla
+presente al interpretar cualquier diagnóstico de colinealidad ponderado.
+
+## Comparación
+
+| | Literatura | multiCollglm |
+|---|---|---|
+| Sin transformar (`"RAW"`) | $CN = 3410.63$ (Asar y Korkmaz 2022, raíz) | `r round(condition_number(mod, method = "RAW")$condition_index, 4)` |
+| Reescalado a longitud unidad, sin centrar | $CN \approx 352.04$ | `r round(condition_number(mod, method = "WS")$condition_index, 4)` |
+| Centrado + escalado (`"OZ"`) | — | `r round(condition_number(mod, method = "OZ")$condition_index, 4)` |
+
+El valor de Asar y Korkmaz (2022) se reproduce con `method = "RAW"` hasta
+la cuarta cifra decimal: **3410.6317** frente a su **3410.63**. El valor
+"consenso" de los otros tres trabajos (3394.30) queda muy cerca pero no
+exactamente, lo que sugiere que usan un enlace ligeramente distinto (o
+alguna variante menor en la muestra) que no han documentado; y el de
+Seifollahi et al. (2024), pese a declarar el mismo procedimiento que Asar
+y Korkmaz, no se aproxima a ninguno de los dos.
+
+## Conclusión
+
+Cuando se reescala la matriz ya ponderada por IRLS a longitud unidad sin
+centrar (`"WS"`), el número de condición baja de los miles a unos pocos
+cientos: la conclusión de colinealidad severa se mantiene, pero deja de
+estar dominada por la disparidad de escalas entre variables tan distintas
+como la edad (en años) y la anchura de codo (en centímetros). El hallazgo
+más interesante de este dataset, sin embargo, es la identidad estructural
+de los pesos IRLS bajo Gamma con enlace logarítmico: al ser siempre
+iguales a 1, dos de los cinco métodos del paquete coinciden exactamente,
+algo que no ocurre en general para otras combinaciones familia/enlace (ver
+el artículo de Nitrogen, donde ninguno de los cinco métodos coincide entre
+sí).
+
+## Referencias
+
+- Penrose, K.W., Nelson, A.G. y Fisher, A.G. (1985). Generalized body
+  composition prediction equation for men using simple measurement
+  techniques. *Medicine & Science in Sports & Exercise*, 17(2), 189.
+- Almuqrin, M.A. y AbaOud, M. (2025). Developing a new modified
+  two-parameter Liu estimator for the gamma regression model: Method,
+  simulation and application to health data. *Alexandria Engineering
+  Journal*, 129, 1212-1222. <https://doi.org/10.1016/j.aej.2025.08.033>
+- Al-Ghamdi, M.N., Abonazel, M.R., Dawoud, I., Algamal, Z.Y. y Azazy, A.R.
+  (2025). A new estimator of the gamma regression model: theory,
+  simulation, and application to body fat data. *Communications in
+  Mathematical Biology and Neuroscience*, 2025, Article 53.
+  <https://doi.org/10.28919/cmbn/9149>
+- Asar, Y. y Korkmaz, M. (2022). Almost unbiased Liu-type estimators in
+  gamma regression model. *Journal of Computational and Applied
+  Mathematics*, 403, 113819. <https://doi.org/10.1016/j.cam.2021.113819>
+- Seifollahi, S., Bevrani, H. y Kamary, K. (2024). Inequality restricted
+  estimator for gamma regression: Bayesian approach as a solution to the
+  multicollinearity. *Communications in Statistics - Theory and Methods*,
+  53(23), 8297-8311. <https://doi.org/10.1080/03610926.2023.2281267>
+- El-Masry, A.M., Abu-Hamed, A.A., Abonazel, M.R., Omara, T.M. y Khattab,
+  I.G. (2025). A new gamma regression estimate of female body fat
+  percentage: advanced statistical modeling. *Communications in
+  Mathematical Biology and Neuroscience*, 2025, Article 133.
+  <https://doi.org/10.28919/cmbn/9493>

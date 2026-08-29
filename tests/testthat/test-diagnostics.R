@@ -211,6 +211,84 @@ test_that("manual center = TRUE (bypassing method = \"OZ\") still keeps the inte
   expect_true(is.infinite(res_manual$condition_number) && res_manual$condition_number > 0)
 })
 
+test_that("method = \"MS\" refits on centered-and-unit-scaled variables and matches a manual refit", {
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+
+  res_ms <- condition_number(mod, method = "MS")
+  expect_identical(res_ms$nc_label, "NC_MS")
+  expect_identical(res_ms$method, "MS")
+
+  # Reproduce the Marx and Smith (1990) procedure by hand: center and
+  # unit-length-scale the non-intercept columns, refit with an ordinary
+  # intercept, then read the condition number directly off the refit's own
+  # (unweighted-transformation) IRLS-weighted information matrix.
+  X <- model.matrix(mod)
+  Xvars <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+  Xc <- sweep(Xvars, 2, colMeans(Xvars), "-")
+  Xcu <- sweep(Xc, 2, sqrt(colSums(Xc^2)), "/")
+  refit_manual <- glm(d$y ~ Xcu, family = Gamma(link = "inverse"))
+  Xw_manual <- model.matrix(refit_manual) * sqrt(refit_manual$weights)
+  ev_manual <- sort(eigen(crossprod(Xw_manual), symmetric = TRUE)$values, decreasing = TRUE)
+  cn_manual <- max(ev_manual) / min(ev_manual)
+
+  expect_equal(unname(res_ms$eigenvalues), ev_manual, tolerance = 1e-6)
+  expect_equal(res_ms$condition_number, cn_manual, tolerance = 1e-6)
+
+  # MS, MP, WS and OZ are all genuinely different definitions
+  cn_ws <- condition_number(mod, method = "WS")$condition_number
+  expect_false(isTRUE(all.equal(res_ms$condition_number, cn_ws)))
+})
+
+test_that("method = \"MS\" gives an informative error for a no-intercept Gamma/inverse-link model that fails to reconverge", {
+  # Centering removes the constant baseline a no-intercept model relies on;
+  # for the Gamma family with the inverse link (which needs positive fitted
+  # values), the refit's IRLS iteration can diverge entirely. This is a
+  # genuine limitation of the method for this family/link combination (Marx
+  # and Smith 1990 developed it for logistic regression with an intercept),
+  # not a bug -- the error should be informative rather than a bare glm()
+  # failure.
+  d <- data.frame(
+    y  = c(6, 5, 5, 3, 7, 9, 6, 2, 10, 7, 3, 4, 13, 10, 7, 3, 6, 5, 4, 9, 11, 8, 9, 6, 2),
+    x1 = c(11.1, 12.1, 12, 17.8, 9.5, 7.2, 11.5, 13.4, 10.8, 13.8, 14.6, 12.1, 8, 8.8, 12.9,
+           12.7, 12.1, 11.1, 11.3, 9, 9.2, 8.4, 8, 13.8, 17.8),
+    x2 = c(90, 86, 80, 70, 90, 100, 92, 74, 87, 78, 73, 85, 94, 91, 84, 68, 81, 78, 74, 78,
+           84, 90, 90, 80, 68),
+    x3 = c(382, 380, 372, 352, 358, 362, 302, 316, 339, 328, 278, 339, 241, 193, 268, 113,
+           313, 317, 324, 312, 349, 290, 295, 283, 259),
+    x4 = c(12, 20, 19, 16, 10, 12, 15, 15, 14, 14, 5, 17, 16, 13, 8, -9, 6, 10, 1, 5, 4, 14,
+           9, 5, -10)
+  )
+  mod <- glm(y ~ x1 + x2 + x3 + x4 - 1, family = Gamma(link = "inverse"), data = d)
+  expect_error(condition_number(mod, method = "MS"), "method = \"MS\"")
+})
+
+test_that("method = \"MS\" works for a no-intercept binomial/logit model (Marx and Smith's own setting)", {
+  # Lee (1974) cancer remission data, fit without an intercept as in Ozkale
+  # (2019, Sec. 5.2) -- unlike the Gamma/inverse case above, binomial/logit
+  # has no structural obstruction to centering a no-intercept model, so
+  # method = "MS" should converge to a finite, well-defined result here.
+  d <- data.frame(
+    y  = c(1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0),
+    x1 = c(0.8, 0.9, 0.8, 1, 0.9, 1, 0.95, 0.95, 1, 0.95, 0.85, 0.7, 0.8, 0.2, 1, 1, 0.65, 1,
+           0.5, 1, 1, 0.9, 1, 0.95, 1, 1, 1),
+    x2 = c(0.83, 0.36, 0.88, 0.87, 0.75, 0.65, 0.97, 0.87, 0.45, 0.36, 0.39, 0.76, 0.46, 0.39,
+           0.9, 0.84, 0.42, 0.75, 0.44, 0.63, 0.33, 0.93, 0.58, 0.32, 0.6, 0.69, 0.73),
+    x3 = c(0.66, 0.32, 0.7, 0.87, 0.68, 0.65, 0.92, 0.83, 0.45, 0.34, 0.33, 0.53, 0.37, 0.08,
+           0.9, 0.84, 0.27, 0.75, 0.22, 0.63, 0.33, 0.84, 0.58, 0.3, 0.6, 0.69, 0.73),
+    x5 = c(1.1, 0.74, 0.176, 1.053, 0.519, 0.519, 1.23, 1.354, 0.322, 0, 0.279, 0.146, 0.38,
+           0.114, 1.037, 2.064, 0.114, 1.322, 0.114, 1.072, 0.176, 1.591, 0.531, 0.886, 0.964,
+           0.398, 0.398),
+    x6 = c(0.996, 0.992, 0.982, 0.986, 0.98, 0.982, 0.992, 1.02, 0.999, 1.038, 0.988, 0.982,
+           1.006, 0.99, 0.99, 1.02, 1.014, 1.004, 0.99, 0.986, 1.01, 1.02, 1.002, 0.988, 0.99,
+           0.986, 0.986)
+  )
+  mod <- glm(y ~ x1 + x2 + x3 + x5 + x6 - 1, family = binomial(), data = d)
+  res_ms <- condition_number(mod, method = "MS")
+  expect_true(is.finite(res_ms$condition_number))
+  expect_identical(res_ms$nc_label, "NC_MS")
+})
+
 test_that("method = \"MP\" refits on unit-length-rescaled variables and matches the direct (no-refit) formula", {
   skip_if_not_installed("multiColl")
 

@@ -3,25 +3,31 @@ Type: Package
 Title: Collinearity Diagnostics for Generalized Linear Models
 Version: 0.3.0
 Authors@R: c(
-    person(given = "Catalina", family = "García García",
+    person(given = "Catalina", family = "Garcia Garcia",
            email = "cbgarcia@go.ugr.es", role = c("aut", "cre")),
-    person(given = "Román", family = "Salmerón Gómez", role = "aut")
-)
+    person(given = "Roman", family = "Salmeron Gomez", role = "aut")
+    )
 Description: Tools to diagnose collinearity in generalized linear models
     (GLMs) via the condition number, a full Belsley-Kuh-Welsch variance-
     decomposition analysis, and the Redefined Variance Inflation Factor
     (RVIF; Salmeron, Garcia and Garcia 2025). All three are computed on
     the design matrix weighted by the IRLS weights at convergence and
     scaled to unit length by column (without centering). condition_number()
-    additionally supports three published condition-number definitions via
-    its 'method' argument: Mackinnon and Puterman (1989) ('"MP"'),
-    Weissfeld and Sereika (1991) ('"WS"', the package default), and Ozkale
-    (2019) ('"OZ"'). Provides methods for 'glm' objects and for regularized
+    additionally supports five condition-number definitions via its
+    'method' argument: no transformation at all ('"RAW"'), Mackinnon and
+    Puterman (1989) ('"MP"'), Marx and Smith (1990) ('"MS"'), Weissfeld
+    and Sereika (1991) ('"WS"', the package default), and Ozkale (2019)
+    ('"OZ"'). Provides methods for 'glm' objects and for regularized
     models fitted with 'glmnet' or 'cv.glmnet', which are internally refit
     as a 'glm' on the active set of variables selected at the given lambda.
+    Ships four example datasets (Nitrogen, Mine, LeeCancer, Plastic) used
+    by the package's reproduction articles, which reproduce and compare
+    against condition numbers reported in the published literature.
 License: GPL (>= 3)
-URL: https://github.com/cbgarciaugr/multiCollglm, https://cbgarciaugr.github.io/multiCollglm/
-BugReports: https://github.com/cbgarciaugr/multiCollglm/issues
+URL: https://github.com/<usuario-github>/multiCollglm, https://<usuario-github>.github.io/multiCollglm/
+BugReports: https://github.com/<usuario-github>/multiCollglm/issues
+Depends:
+    R (>= 3.5.0)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -33,6 +39,7 @@ Suggests:
     knitr,
     multiColl,
     rmarkdown,
+    TH.data,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
