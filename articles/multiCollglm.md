@@ -13,7 +13,7 @@ centering).
 ``` r
 
 # install.packages("remotes")
-remotes::install_github("<usuario-github>/multiCollglm")
+remotes::install_github("cbgarciaugr/multiCollglm")
 ```
 
 ## Usage with `glm`
@@ -120,7 +120,7 @@ condition_number(mod, method = "MS")  # centered, unit-scaled, then refit (Marx 
 `multiColl` package. See
 [`?condition_number`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)
 and the package’s
-[README](https://github.com/%3Cusuario-github%3E/multiCollglm#condition-number-methods-method-argument)
+[README](https://github.com/cbgarciaugr/multiCollglm#condition-number-methods-method-argument)
 for the full description of each method, and for the caveats around
 `"MS"` (which can fail to converge for a no-intercept model) and `"OZ"`
 (which can legitimately return `Inf` for a Gamma model with the
@@ -202,7 +202,7 @@ on which at least two coefficients have a variance proportion `>= 0.5`
 ## Beyond this guide
 
 This vignette covers the package’s basic usage. The [package
-website](https://%3Cusuario-github%3E.github.io/multiCollglm/articles/index.html)
+website](https://cbgarciaugr.github.io/multiCollglm/articles/index.html)
 also includes a series of **reproduction articles**: real cases from the
 literature where collinearity was diagnosed without applying the correct
 data transformation, together with a comparison against the results

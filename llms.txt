@@ -27,10 +27,10 @@ diagnostics can be computed.
 See
 [`vignette("multiCollglm")`](https://cbgarciaugr.github.io/multiCollglm/articles/multiCollglm.md)
 for a getting-started guide, and the [package
-website](https://%3Cusuario-github%3E.github.io/multiCollglm/) for
-worked reproductions of published works — using the four example
-datasets bundled with the package (`Nitrogen`, `Mine`, `LeeCancer`,
-`Plastic`; see
+website](https://cbgarciaugr.github.io/multiCollglm/) for worked
+reproductions of published works — using the four example datasets
+bundled with the package (`Nitrogen`, `Mine`, `LeeCancer`, `Plastic`;
+see
 [`?Nitrogen`](https://cbgarciaugr.github.io/multiCollglm/reference/Nitrogen.md)
 etc.) — where collinearity was diagnosed without the correct data
 transformation, compared against the results from this package.
