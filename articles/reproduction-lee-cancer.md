@@ -211,7 +211,7 @@ knitr::kable(calc_table(mod3542), digits = 4)
 
 | method | nc_label | condition_number | condition_index |
 |:-------|:---------|-----------------:|----------------:|
-| RAW    | NC_RAW   |    219838806\.17 |      14826.9621 |
+| RAW    | NC_RAW   |    219838806\.31 |      14826.9621 |
 | MP     | NC_MP    |        163327.20 |        404.1376 |
 | MS     | NC_MS    |         23296.31 |        152.6313 |
 | WS     | NC_WS    |        143044.11 |        378.2117 |
@@ -244,7 +244,7 @@ knitr::kable(calc_table(mod137), digits = 4)
 
 | method | nc_label | condition_number | condition_index |
 |:-------|:---------|-----------------:|----------------:|
-| RAW    | NC_RAW   |    395524499\.52 |      19887.7978 |
+| RAW    | NC_RAW   |    395524494\.29 |      19887.7976 |
 | MP     | NC_MP    |        248614.00 |        498.6121 |
 | MS     | NC_MS    |         43277.14 |        208.0316 |
 | WS     | NC_WS    |        218108.47 |        467.0208 |
@@ -261,7 +261,7 @@ knitr::kable(calc_table(mod137b), digits = 4)
 
 | method | nc_label | condition_number | condition_index |
 |:-------|:---------|-----------------:|----------------:|
-| RAW    | NC_RAW   |     2.900940e+08 |      17032.1464 |
+| RAW    | NC_RAW   |     2.900940e+08 |      17032.1463 |
 | MP     | NC_MP    |     1.431963e+05 |        378.4129 |
 | MS     | NC_MS    |     5.158097e+02 |         22.7114 |
 | WS     | NC_WS    |     1.393080e+05 |        373.2398 |

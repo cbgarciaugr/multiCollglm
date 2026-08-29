@@ -345,11 +345,3 @@ multiCollglm’s results.
   manufacturing dataset, used by six works fitting different count-data
   GLMs, and documents a citation error (CN = 8634.73) that propagates
   unverified across at least three publications.
-
-- [Reproduction: \[Author(s), Year\] -- \[short title of the
-  work\]](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-template.md):
-
-  Reproduces the collinearity diagnostic from \[short citation\] and
-  compares it against the result from multiCollglm, which applies the
-  correct transformation (design matrix weighted by IRLS, scaled to unit
-  length, without centering).
