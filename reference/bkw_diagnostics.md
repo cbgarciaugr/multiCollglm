@@ -1,0 +1,167 @@
+# Full Belsley-Kuh-Welsch collinearity diagnostics
+
+Computes, over the design matrix weighted by the IRLS weights at
+convergence and, by default, scaled to unit length (without centering),
+the condition index per component and the Belsley, Kuh and Welsch (1980)
+variance-decomposition proportion matrix, which identifies which
+coefficients are involved in each collinearity relationship.
+
+## Usage
+
+``` r
+bkw_diagnostics(model, ...)
+
+# S3 method for class 'glmnet'
+bkw_diagnostics(
+  model,
+  x,
+  y,
+  family,
+  s,
+  weights = NULL,
+  offset = NULL,
+  index_threshold = 10,
+  proportion_threshold = 0.5,
+  center = FALSE,
+  scale = "unit",
+  ...
+)
+
+# S3 method for class 'cv.glmnet'
+bkw_diagnostics(
+  model,
+  x,
+  y,
+  family,
+  s = "lambda.min",
+  weights = NULL,
+  offset = NULL,
+  index_threshold = 10,
+  proportion_threshold = 0.5,
+  center = FALSE,
+  scale = "unit",
+  ...
+)
+```
+
+## Arguments
+
+- model:
+
+  A `glm`, `glmnet` or `cv.glmnet` object.
+
+- ...:
+
+  Additional arguments passed to the methods (see `x`, `y`, `family`,
+  `s`, `weights`, `offset` for `glmnet`/`cv.glmnet`).
+
+- x:
+
+  Predictor matrix (the same one used to fit the `glmnet` model), with
+  `colnames`.
+
+- y:
+
+  Response variable used to fit the `glmnet` model.
+
+- family:
+
+  GLM family (a `family` object, e.g. `Gamma(link = "inverse")`) used to
+  refit a `glm` on the active set of variables at the given lambda.
+
+- s:
+
+  Lambda value (numeric) for a `glmnet` object. For `cv.glmnet` it can
+  also be `"lambda.min"` or `"lambda.1se"`.
+
+- weights:
+
+  Optional prior weights for the refit.
+
+- offset:
+
+  Optional offset for the refit.
+
+- index_threshold:
+
+  Condition-index threshold used to flag a dimension as suspicious
+  (default 10, i.e. a condition number of 100 before taking the square
+  root).
+
+- proportion_threshold:
+
+  Variance-proportion threshold used to consider a coefficient involved
+  in a suspicious dimension (default 0.5).
+
+- center:
+
+  Either `FALSE` (default; no centering, as originally proposed and
+  required to detect non-essential collinearity involving the intercept)
+  or any value accepted by
+  [`scale()`](https://rdrr.io/r/base/scale.html)'s own `center`
+  argument: `TRUE` to center each column on its mean, or a numeric
+  vector of per-column values to subtract. For a canonical-link GLM with
+  an intercept, centering the IRLS-weighted design matrix is
+  mathematically guaranteed to drop its rank by exactly one (since
+  `sqrt(w) * eta` is then constant), which `bkw_diagnostics()` and
+  [`rvif_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/rvif_diagnostics.md)
+  report as an error rather than silent `NaN`s; this is the classical
+  reason Belsley, Kuh and Welsch advise against centering for
+  collinearity diagnostics.
+
+- scale:
+
+  Either `"unit"` (default; each column is scaled to Euclidean/L2 unit
+  length, as originally proposed and required for the classical
+  condition-index thresholds and the RVIF formula) or any value accepted
+  by [`scale()`](https://rdrr.io/r/base/scale.html)'s own `scale`
+  argument: `TRUE` for root-mean-square scaling, `FALSE` for no scaling,
+  or a numeric vector of per-column divisors.
+
+## Value
+
+An object of class `multicollglm_bkw` with the eigenvalues, singular
+values, condition indices, the proportions matrix (`proportions`, one
+row per coefficient and one column per component), and the list of
+flagged dimensions (`flagged`).
+
+## Details
+
+A dimension is flagged as problematic when its condition index is
+greater than or equal to `index_threshold` and at least two coefficients
+have a variance proportion greater than or equal to
+`proportion_threshold` on that dimension. The default
+`index_threshold = 10` corresponds to a condition number of 100 on the
+eigenvalue (non-square-rooted) scale, since
+`condition_index = sqrt(condition_number)`.
+
+## Examples
+
+``` r
+set.seed(1)
+n <- 200
+x1 <- rnorm(n); x2 <- x1 + rnorm(n, sd = 0.05); x3 <- rnorm(n); x4 <- rnorm(n)
+mu <- exp(1 + 0.3 * x1 + 0.3 * x2 - 0.2 * x3 + 0.1 * x4)
+y <- rgamma(n, shape = 5, rate = 5 / mu)
+mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"))
+bkw_diagnostics(mod)
+#> Collinearity diagnostics (Belsley-Kuh-Welsch)
+#> 
+#>      Eigenvalue Sing.value Condition_index
+#> dim1      3.266      1.807           1.000
+#> dim2      0.881      0.939           1.925
+#> dim3      0.621      0.788           2.294
+#> dim4      0.231      0.481           3.756
+#> dim5      0.000      0.018         100.614
+#> 
+#> Variance-decomposition proportions (row = coefficient, column = component):
+#>              dim1  dim2  dim3  dim4  dim5
+#> (Intercept) 0.023 0.003 0.000 0.973 0.001
+#> x1          0.000 0.000 0.000 0.000 1.000
+#> x2          0.000 0.000 0.000 0.000 1.000
+#> x3          0.029 0.002 0.809 0.141 0.018
+#> x4          0.015 0.935 0.043 0.005 0.002
+#> 
+#> >> Possible collinearity problems (condition index >= 10 and proportion >= 0.5 on >= 2 variables):
+#>   - dim5 (index = 100.61): x1, x2
+```

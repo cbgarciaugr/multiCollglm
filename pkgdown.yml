@@ -1,0 +1,15 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  multiCollglm: multiCollglm.html
+  articles/reproduction-bodyfat: reproduction-bodyfat.html
+  articles/reproduction-lee-cancer: reproduction-lee-cancer.html
+  articles/reproduction-mines: reproduction-mines.html
+  articles/reproduction-nitrogen: reproduction-nitrogen.html
+  articles/reproduction-plastic: reproduction-plastic.html
+  articles/reproduction-template: reproduction-template.html
+last_built: 2026-08-29T10:47Z
+urls:
+  reference: https://cbgarciaugr.github.io/multiCollglm/reference
+  article: https://cbgarciaugr.github.io/multiCollglm/articles
