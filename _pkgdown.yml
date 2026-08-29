@@ -36,12 +36,12 @@ articles:
     correct data transformation, reproduced and compared against
     multiCollglm's results.
   contents:
-  - reproduction-lee-cancer
-  - reproduction-nitrogen
-  - reproduction-mines
-  - reproduction-bodyfat
-  - reproduction-plastic
-  - reproduction-template
+  - articles/reproduction-lee-cancer
+  - articles/reproduction-nitrogen
+  - articles/reproduction-mines
+  - articles/reproduction-bodyfat
+  - articles/reproduction-plastic
+  - articles/reproduction-template
   # As more articles are added (starting from reproduction-template.Rmd),
   # list them here one per line, e.g.:
   # - reproduction-perez-2019-energy-consumption
