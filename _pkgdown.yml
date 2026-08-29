@@ -41,7 +41,9 @@ articles:
   - articles/reproduction-mines
   - articles/reproduction-bodyfat
   - articles/reproduction-plastic
-  - articles/reproduction-template
   # As more articles are added (starting from reproduction-template.Rmd),
   # list them here one per line, e.g.:
-  # - reproduction-perez-2019-energy-consumption
+  # - articles/reproduction-perez-2019-energy-consumption
+- title: internal
+  contents:
+  - articles/reproduction-template
