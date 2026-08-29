@@ -387,7 +387,11 @@ test_that("method = \"OZ\" can still be exactly rank-deficient for a Gamma/inver
   mod <- glm(y ~ x1 + x2 + x3 + x4 - 1, family = Gamma(link = "inverse"), data = d)
 
   eta_hat <- as.numeric(model.matrix(mod) %*% coef(mod))
-  expect_equal(sqrt(mod$weights) * eta_hat, rep(1, nrow(d)), tolerance = 1e-6)
+  # unname(): mod$weights carries the data's row names, which would
+  # otherwise make expect_equal() report a spurious mismatch (differing
+  # names attribute) even though every value matches within tolerance.
+  expect_equal(unname(sqrt(mod$weights) * eta_hat), rep(1, nrow(d)),
+               tolerance = 1e-6)
 
   expect_warning(res_oz <- condition_number(mod, method = "OZ"), "rank-deficient")
   expect_true(is.infinite(res_oz$condition_number) && res_oz$condition_number > 0)

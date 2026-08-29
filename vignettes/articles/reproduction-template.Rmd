@@ -1,0 +1,120 @@
+---
+title: "Reproduction: [Author(s), Year] -- [short title of the work]"
+description: >
+  Reproduces the collinearity diagnostic from [short citation] and
+  compares it against the result from multiCollglm, which applies the
+  correct transformation (design matrix weighted by IRLS, scaled to unit
+  length, without centering).
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+<!--
+TEMPLATE for a reproduction article.
+
+How to use it:
+1. Duplicate this file inside vignettes/articles/ with a descriptive
+   name, e.g. reproduction-perez-2019-energy-consumption.Rmd
+2. Replace the title/description in the YAML header above.
+3. Replace the "Data" section with the real data from the work (or a
+   faithful simulation if the original data cannot be redistributed:
+   check its license first).
+4. Replace the "Original diagnostic" section with the calculation
+   exactly as it appears in the published work (or as it would be
+   calculated following its methodological description), making clear
+   what transformation (or lack of one) was applied.
+5. Add the article to _pkgdown.yml (articles section) so it appears in
+   the package website's menu.
+6. Delete this comment block before publishing.
+-->
+
+## Context
+
+[2-3 sentence summary of the original work: what GLM they fitted, which
+variables, and what conclusion they drew about collinearity. Full
+citation in the References section at the end.]
+
+## Data
+
+```{r}
+# TODO: replace with the real data (or a faithful simulation) from the
+# original work. Illustrative example with simulated data:
+set.seed(1)
+n <- 200
+x1 <- rnorm(n)
+x2 <- x1 + rnorm(n, sd = 0.05) # almost collinear with x1
+x3 <- rnorm(n)
+mu <- exp(1 + 0.3 * x1 + 0.3 * x2 - 0.2 * x3)
+y <- rgamma(n, shape = 5, rate = 5 / mu)
+
+mod <- glm(y ~ x1 + x2 + x3, family = Gamma(link = "inverse"))
+summary(mod)
+```
+
+## Original diagnostic (without the correct transformation)
+
+[Explain what transformation (or lack of one) the original work applied:
+for example, classical VIF on the unweighted matrix, or data centered
+before computing the condition number.]
+
+```{r}
+# TODO: reproduce the calculation exactly as the original work did it.
+# Illustrative example: classical least-squares VIF (car::vif), which
+# ignores the GLM's IRLS weights and is therefore not the correct
+# transformation for a non-Gaussian GLM.
+if (requireNamespace("car", quietly = TRUE)) {
+  car::vif(mod)
+} else {
+  message("The 'car' package is not installed; skipping this reference VIF.")
+}
+```
+
+[Interpret the result exactly as the original work interpreted it: did
+they conclude there was, or was not, problematic collinearity?]
+
+## Diagnostic with multiCollglm (correct transformation)
+
+```{r}
+library(multiCollglm)
+
+condition_number(mod)
+bkw_diagnostics(mod)
+rvif_diagnostics(mod)
+```
+
+## Comparison
+
+[Table or text comparing both diagnostics: does the conclusion about the
+existence/severity of collinearity change? Which variables are implicated
+according to each method?]
+
+| | Original diagnostic | multiCollglm |
+|---|---|---|
+| Transformation applied | [e.g. none / centered] | Weighted by IRLS, scaled to unit length, without centering |
+| Conclusion about collinearity | [...] | [...] |
+| Variables implicated | [...] | [...] |
+
+## Conclusion
+
+[2-4 sentences: why the transformation matters in this specific case, and
+what would have changed in the original work's conclusions had it been
+applied correctly.]
+
+## References
+
+- [Full citation of the original work, in APA/the format used by the
+  package.]
+- Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). *Regression
+  Diagnostics: Identifying Influential Data and Sources of
+  Collinearity*. Wiley.
+- Salmeron, R., Garcia, C.B. and Garcia, J. (2025). A redefined Variance
+  Inflation Factor: overcoming the limitations of the Variance Inflation
+  Factor. *Computational Economics*, 65, 337-363.
+  <https://doi.org/10.1007/s10614-024-10575-8>

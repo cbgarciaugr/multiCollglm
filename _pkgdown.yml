@@ -5,7 +5,7 @@ template:
   bootswatch: flatly
 
 home:
-  title: "multiCollglm: diagnósticos de colinealidad para GLM"
+  title: "multiCollglm: collinearity diagnostics for GLMs"
 
 navbar:
   structure:
@@ -13,46 +13,46 @@ navbar:
     right: [search, github]
   components:
     articles:
-      text: Artículos
+      text: Articles
       menu:
-      - text: Reproducciones de colinealidad
+      - text: Collinearity reproductions
       - text: "-------"
 
 reference:
-- title: Diagnósticos
+- title: Diagnostics
   desc: >
-    Las tres funciones principales, calculadas sobre la matriz de diseño
-    ponderada por IRLS en convergencia y escalada a longitud unitaria por
-    columna (sin centrar).
+    The three main functions, computed on the design matrix weighted by
+    IRLS at convergence and scaled to unit length by column (without
+    centering).
   contents:
   - condition_number
   - bkw_diagnostics
   - rvif_diagnostics
-- title: Datasets de ejemplo
+- title: Example datasets
   desc: >
-    Datos reales usados en los artículos de reproducción (ver más abajo).
+    Real data used in the reproduction articles (see below).
   contents:
   - Nitrogen
   - Mine
   - LeeCancer
   - Plastic
-- title: Paquete
+- title: Package
   contents:
   - multiCollglm-package
 
 articles:
-- title: Reproducciones de colinealidad
+- title: Collinearity reproductions
   desc: >
-    Casos publicados en los que la colinealidad se diagnosticó sin aplicar
-    la transformación correcta de los datos, reproducidos y comparados con
-    los resultados de multiCollglm.
+    Published cases where collinearity was diagnosed without applying the
+    correct data transformation, reproduced and compared against
+    multiCollglm's results.
   contents:
-  - reproduccion-lee-cancer
-  - reproduccion-nitrogen
-  - reproduccion-mines
-  - reproduccion-bodyfat
-  - reproduccion-plastic
-  - reproduccion-plantilla
-  # A medida que se añadan más artículos (a partir de
-  # reproduccion-plantilla.Rmd), listarlos aquí uno por línea, por ejemplo:
-  # - reproduccion-perez-2019-consumo-energia
+  - reproduction-lee-cancer
+  - reproduction-nitrogen
+  - reproduction-mines
+  - reproduction-bodyfat
+  - reproduction-plastic
+  - reproduction-template
+  # As more articles are added (starting from reproduction-template.Rmd),
+  # list them here one per line, e.g.:
+  # - reproduction-perez-2019-energy-consumption

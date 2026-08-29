@@ -1,37 +1,36 @@
-# Artículos de reproducción (pkgdown)
+# Reproduction articles (pkgdown)
 
-Esta carpeta no contiene vignettes del paquete: son **artículos de
-pkgdown**. Se renderizan solo para la web del paquete
-(`pkgdown::build_site()` / `pkgdown::build_articles()`) y **no** se
-compilan durante `R CMD build`/`R CMD check` ni se instalan con el
-paquete — por eso `vignettes/articles` está en `.Rbuildignore`. Esto
-permite que cada artículo use datasets externos o tarde más en ejecutarse
-sin afectar al build/check del paquete ni a CRAN.
+This folder does not contain package vignettes: these are **pkgdown
+articles**. They are rendered only for the package website
+(`pkgdown::build_site()` / `pkgdown::build_articles()`) and are **not**
+compiled during `R CMD build`/`R CMD check` or installed with the package
+— that's why `vignettes/articles` is listed in `.Rbuildignore`. This lets
+each article use external datasets or take longer to run without
+affecting the package's build/check or CRAN submission.
 
-## Cómo añadir una nueva reproducción
+## How to add a new reproduction
 
-1. Copia `reproduccion-plantilla.Rmd` con un nombre descriptivo, por
-   ejemplo:
+1. Copy `reproduction-template.Rmd` with a descriptive name, e.g.:
 
    ```
-   reproduccion-perez-2019-consumo-energia.Rmd
+   reproduction-perez-2019-energy-consumption.Rmd
    ```
 
-2. Rellena las secciones siguiendo la plantilla (contexto, datos,
-   diagnóstico original tal y como se hizo en el trabajo, diagnóstico con
-   `multiCollglm`, comparación, conclusión, referencias).
+2. Fill in the sections following the template (context, data, original
+   diagnostic exactly as done in the published work, diagnostic with
+   `multiCollglm`, comparison, conclusion, references).
 
-3. Antes de incluir datos de terceros, comprueba su licencia. Si no se
-   pueden redistribuir, usa una simulación fiel a sus propiedades
-   estadísticas y dilo explícitamente en la sección "Datos".
+3. Before including third-party data, check its license. If it cannot be
+   redistributed, use a simulation faithful to its statistical properties
+   and say so explicitly in the "Data" section.
 
-4. Añade el artículo a `_pkgdown.yml` (sección `articles`, grupo
-   "Reproducciones") para que aparezca listado en el menú de la web.
+4. Add the article to `_pkgdown.yml` (`articles` section, "Reproductions"
+   group) so it appears in the website's menu.
 
-5. Genera la web localmente para revisar el resultado antes de publicar:
+5. Build the website locally to review the result before publishing:
 
    ```r
    pkgdown::build_site()
-   # o solo los artículos:
+   # or just the articles:
    pkgdown::build_articles()
    ```
