@@ -19,7 +19,7 @@ weights, the package identifies the active set of variables at the given
 can be computed.
 
 See `vignette("multiCollglm")` for a getting-started guide, and the
-[package website](https://<usuario-github>.github.io/multiCollglm/) for
+[package website](https://cbgarciaugr.github.io/multiCollglm/) for
 worked reproductions of published works — using the four example datasets
 bundled with the package (`Nitrogen`, `Mine`, `LeeCancer`, `Plastic`; see
 `?Nitrogen` etc.) — where collinearity was diagnosed without the correct
