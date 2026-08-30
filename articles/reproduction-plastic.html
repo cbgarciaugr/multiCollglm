@@ -11,8 +11,10 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Reproduction: plastic plywood manufacturing data (Plastic)">
-<meta name="description" content="Reproduces the collinearity diagnostic of the plastic plywood manufacturing dataset, used by six works fitting different count-data GLMs, and documents a citation error (CN = 8634.73) that propagates unverified across at least three publications.">
-<meta property="og:description" content="Reproduces the collinearity diagnostic of the plastic plywood manufacturing dataset, used by six works fitting different count-data GLMs, and documents a citation error (CN = 8634.73) that propagates unverified across at least three publications.">
+<meta name="description" content="Reproduces the collinearity diagnostic of the plastic plywood manufacturing dataset, used by six works fitting different count-data GLMs, and documents a citation error (CN = 8634.73) that propagates unverified across at least three publications.
+">
+<meta property="og:description" content="Reproduces the collinearity diagnostic of the plastic plywood manufacturing dataset, used by six works fitting different count-data GLMs, and documents a citation error (CN = 8634.73) that propagates unverified across at least three publications.
+">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -67,26 +69,17 @@
 </h2>
 <p>The <code>Plastic</code> dataset comes from a
 statistical-process-control case study at a medium-sized timber industry
-that manufactures laminated plastic plywood (Marcondes Filho and
-Sant’Anna, 2016). It has 100 reference observations; the response
-<code>Y</code> is the number of defects per unit area (count data), and
-the four regressors are volumetric shrinkage (<code>X1</code>, %),
-assembly time (<code>X2</code>, minutes), wood density (<code>X3</code>,
-g/cm3) and drying temperature (<code>X4</code>, deg C). It is a widely
-cited dataset in the collinearity literature because <code>X1</code> and
-<code>X2</code> are strongly correlated with each other, as are
-<code>X3</code> and <code>X4</code>.</p>
-<p>It has been reused by Sami, Amin and Butt (2022)
-[<code>review8</code>], Tanis and Asar (2026) [<code>review19</code>],
-Mammadova and Ozkale (2021) [<code>review27</code>], Dawoud (2025)
-[<code>review36</code>], Tanis and Asar (2024) [<code>review74</code>]
-and Ashraf et al. (2025) [<code>review81</code>], each with a different
-count-data model (Bell, Conway-Maxwell-Poisson, Poisson, negative
-binomial).</p>
-<p>The original data from Marcondes Filho and Sant’Anna (2016) were
-verified, in earlier work in this same project, to be byte-identical
-(aside from formatting differences) to the spreadsheet distributed with
-this package.</p>
+that manufactures laminated plastic plywood <span class="citation">(2016)</span>. It has 100 reference observations; the
+response <code>Y</code> is the number of defects per unit area (count
+data), and the four regressors are volumetric shrinkage
+(<code>X1</code>, %), assembly time (<code>X2</code>, minutes), wood
+density (<code>X3</code>, g/cm3) and drying temperature
+(<code>X4</code>, deg C). It is a widely cited dataset in the
+collinearity literature because <code>X1</code> and <code>X2</code> are
+strongly correlated with each other, as are <code>X3</code> and
+<code>X4</code>.</p>
+<p>It has been reused by Sami, Amin and Butt <span class="citation">(2022)</span>, Tanis and Asar <span class="citation">(2026)</span>, Mammadova and Ozkale <span class="citation">(2021)</span>, Dawoud <span class="citation">(2025)</span>, Tanis and Asar <span class="citation">(2024)</span> and Ashraf et al. <span class="citation">(2025)</span>, each with a different count-data model
+(Bell, Conway-Maxwell-Poisson, Poisson, negative binomial).</p>
 </div>
 <div class="section level2">
 <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
@@ -103,96 +96,54 @@ this package.</p>
 <span><span class="co">#&gt;  $ X4: num  118 106 150 124 118 ...</span></span>
 <span></span>
 <span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">X1</span> <span class="op">+</span> <span class="va">X2</span> <span class="op">+</span> <span class="va">X3</span> <span class="op">+</span> <span class="va">X4</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
-<span>           data <span class="op">=</span> <span class="va">Plastic</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; glm(formula = Y ~ X1 + X2 + X3 + X4, family = poisson(link = "log"), </span></span>
-<span><span class="co">#&gt;     data = Plastic)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt;              Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; (Intercept) -20.37279    3.63400  -5.606 2.07e-08 ***</span></span>
-<span><span class="co">#&gt; X1           -0.62014    0.32927  -1.883   0.0596 .  </span></span>
-<span><span class="co">#&gt; X2            1.50647    0.32987   4.567 4.95e-06 ***</span></span>
-<span><span class="co">#&gt; X3          -10.88969   13.04345  -0.835   0.4038    </span></span>
-<span><span class="co">#&gt; X4            0.08861    0.01528   5.800 6.64e-09 ***</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; (Dispersion parameter for poisson family taken to be 1)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     Null deviance: 3990.74  on 99  degrees of freedom</span></span>
-<span><span class="co">#&gt; Residual deviance:   82.22  on 95  degrees of freedom</span></span>
-<span><span class="co">#&gt; AIC: 410.28</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Number of Fisher Scoring iterations: 4</span></span></code></pre></div>
+<span>           data <span class="op">=</span> <span class="va">Plastic</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="original-diagnostic-a-tour-of-the-literature-and-a-citation-error">Original diagnostic (a tour of the literature, and a citation
-error)<a class="anchor" aria-label="anchor" href="#original-diagnostic-a-tour-of-the-literature-and-a-citation-error"></a>
+<h2 id="diagnostic-with-multicollglm-and-comparison-with-literature">Diagnostic with multiCollglm and comparison with literature<a class="anchor" aria-label="anchor" href="#diagnostic-with-multicollglm-and-comparison-with-literature"></a>
 </h2>
-<p>Tanis and Asar (2026) and Tanis and Asar (2024) fit a Bell regression
-without an intercept, with the data centered and standardized so that
+<p>Tanis and Asar <span class="citation">(2026)</span> and Tanis and
+Asar <span class="citation">(2024)</span> fit a Bell regression without
+an intercept, with the data centered and standardized so that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mo>′</mo></msup><mi>X</mi></mrow><annotation encoding="application/x-tex">X'X</annotation></semantics></math>
-is in correlation form (Tanis and Asar 2024 state this explicitly:
-<em>“The design matrix is centred and standardized so that
+is in correlation form (Tanis and Asar <span class="citation">(2024)</span> state this explicitly: <em>“The design
+matrix is centered and standardized so that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mo>′</mo></msup><mi>X</mi></mrow><annotation encoding="application/x-tex">X'X</annotation></semantics></math>
 is in correlation form”</em>), obtaining
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>N</mi><mo>=</mo><mn>74.5281</mn></mrow><annotation encoding="application/x-tex">CN = 74.5281</annotation></semantics></math>.</p>
-<p>Sami, Amin and Butt (2022) fit a Conway-Maxwell-Poisson model and
-compute the condition number as the square root of the eigenvalue ratio
-of
+<p>Sami, Amin and Butt <span class="citation">(2022)</span> fit a
+Conway-Maxwell-Poisson model and compute their
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">CN</annotation></semantics></math>
+as the square root of the eigenvalue ratio of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mo>′</mo></msup><mover><mi>W</mi><mo accent="true">̂</mo></mover><mi>X</mi></mrow><annotation encoding="application/x-tex">X'\hat{W}X</annotation></semantics></math><strong>excluding the intercept</strong>, with no additional
 transformation reported, obtaining
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>N</mi><mo>=</mo><mn>8634.73</mn></mrow><annotation encoding="application/x-tex">CN = 8634.73</annotation></semantics></math>.
-Ashraf et al. (2025) report <strong>exactly the same value</strong>,
+Ashraf et al. <span class="citation">(2025)</span> report
+<strong>exactly the same value</strong>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>8634.73</mn><annotation encoding="application/x-tex">8634.73</annotation></semantics></math>,
 despite fitting three different distributions (Conway-Maxwell-Poisson,
 Poisson and negative binomial) – that three different models,
 necessarily with different IRLS weight matrices, produce the same
-condition number to four decimal places is itself a red flag.</p>
-<p>Dawoud (2025) uses only three of the four regressors (assembly time,
-density, temperature) with Conway-Maxwell-Poisson and a log link,
-obtaining
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">CN</annotation></semantics></math>
+to four decimal places is itself a red flag.</p>
+<p>Dawoud <span class="citation">(2025)</span> uses only three of the
+four regressors (assembly time, density, temperature) with
+Conway-Maxwell-Poisson and a log link, obtaining
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>N</mi><mo>=</mo><mn>13120.14</mn></mrow><annotation encoding="application/x-tex">CN = 13120.14</annotation></semantics></math>,
-with no further detail on the transformation. Mammadova and Ozkale
-(2021) report
+with no further detail on the transformation. Mammadova and Ozkale <span class="citation">(2021)</span> report
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>N</mi><mo>=</mo><mn>2.9558</mn><mo>×</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">CN = 2.9558\times10^{5}</annotation></semantics></math>
 as the ratio between the largest and smallest eigenvalue of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mo>′</mo></msup><mover><mi>W</mi><mo accent="true">̂</mo></mover><mi>X</mi></mrow><annotation encoding="application/x-tex">X'\hat{W}X</annotation></semantics></math>,
 without specifying a distribution, link, or transformation.</p>
-</div>
-<div class="section level2">
-<h2 id="diagnostic-with-multicollglm">Diagnostic with multiCollglm<a class="anchor" aria-label="anchor" href="#diagnostic-with-multicollglm"></a>
-</h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">methods</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"RAW"</span>, <span class="st">"MP"</span>, <span class="st">"MS"</span>, <span class="st">"WS"</span>, <span class="st">"OZ"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">calc_table</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mod</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">methods</span>, <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">res</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="va">m</span><span class="op">)</span>,</span>
-<span>                     error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="cn">NULL</span><span class="op">)</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>method <span class="op">=</span> <span class="va">m</span>, nc_label <span class="op">=</span> <span class="cn">NA</span>, condition_number <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>                 condition_index <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
-<span>    <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>method <span class="op">=</span> <span class="va">m</span>, nc_label <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">nc_label</span>,</span>
-<span>                 condition_number <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">condition_number</span>,</span>
-<span>                 condition_index <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">condition_index</span><span class="op">)</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"All four variables, with intercept:\n"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"All four variables, with intercept:\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; All four variables, with intercept:</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">calc_table</span><span class="op">(</span><span class="va">mod</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">method</th>
 <th align="left">nc_label</th>
-<th align="right">condition_number</th>
-<th align="right">condition_index</th>
+<th align="right">CN</th>
+<th align="right">sqrt(CN)</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -229,17 +180,17 @@ without specifying a distribution, link, or transformation.</p>
 </table>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">mod0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">X1</span> <span class="op">+</span> <span class="va">X2</span> <span class="op">+</span> <span class="va">X3</span> <span class="op">+</span> <span class="va">X4</span> <span class="op">-</span> <span class="fl">1</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
+<span><span class="va">mod1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">X1</span> <span class="op">+</span> <span class="va">X2</span> <span class="op">+</span> <span class="va">X3</span> <span class="op">+</span> <span class="va">X4</span> <span class="op">-</span> <span class="fl">1</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
 <span>            data <span class="op">=</span> <span class="va">Plastic</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"All four variables, without intercept:\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; All four variables, without intercept:</span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">calc_table</span><span class="op">(</span><span class="va">mod0</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">calc_table</span><span class="op">(</span><span class="va">mod1</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">method</th>
 <th align="left">nc_label</th>
-<th align="right">condition_number</th>
-<th align="right">condition_index</th>
+<th align="right">CN</th>
+<th align="right">sqrt(CN)</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -276,17 +227,17 @@ without specifying a distribution, link, or transformation.</p>
 </table>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">mod36</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">X2</span> <span class="op">+</span> <span class="va">X3</span> <span class="op">+</span> <span class="va">X4</span> <span class="op">-</span> <span class="fl">1</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
+<span><span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">X2</span> <span class="op">+</span> <span class="va">X3</span> <span class="op">+</span> <span class="va">X4</span> <span class="op">-</span> <span class="fl">1</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
 <span>             data <span class="op">=</span> <span class="va">Plastic</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Dawoud's (2025) subset (X2, X3, X4), without intercept:\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Dawoud's (2025) subset (X2, X3, X4), without intercept:</span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">calc_table</span><span class="op">(</span><span class="va">mod36</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">calc_table</span><span class="op">(</span><span class="va">mod2</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">method</th>
 <th align="left">nc_label</th>
-<th align="right">condition_number</th>
-<th align="right">condition_index</th>
+<th align="right">CN</th>
+<th align="right">sqrt(CN)</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -321,118 +272,75 @@ without specifying a distribution, link, or transformation.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section level2">
-<h2 id="comparison">Comparison<a class="anchor" aria-label="anchor" href="#comparison"></a>
-</h2>
 <p>No combination of family/link/transformation available in
 <code><a href="../reference/condition_number.html">condition_number()</a></code> reproduces the three most-cited values
 in this literature
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>8634.73</mn><annotation encoding="application/x-tex">8634.73</annotation></semantics></math>;
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>13120.14</mn><annotation encoding="application/x-tex">13120.14</annotation></semantics></math>;
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2.9558</mn><mo>×</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">2.9558\times10^{5}</annotation></semantics></math>),
-whether with the four variables or Dawoud’s (2025) subset of three, and
-with or without an intercept. The values that are obtained span a wide
-range (from a few tens to billions depending on the method), but none
-match the published figures.</p>
-<p>That, together with the fact that Ashraf et al. (2025) report the
-same
+whether with the four variables or Dawoud’s <span class="citation">(2025)</span> subset of three, and with or without an
+intercept. The values that are obtained span a wide range (from a few
+tens to billions depending on the method), but none match the published
+figures.</p>
+<p>That, together with the fact that Ashraf et al. <span class="citation">(2025)</span> report the same
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>8634.73</mn><annotation encoding="application/x-tex">8634.73</annotation></semantics></math>
-for three different distributions – when the IRLS weight matrix, and
-hence the condition number, should differ between them – suggests that
+for three different distributions (when the IRLS weight matrix, and
+hence
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">CN</annotation></semantics></math>,
+should differ between them) suggests that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>8634.73</mn><annotation encoding="application/x-tex">8634.73</annotation></semantics></math>
 has been <strong>cited from one work to the next without being
 independently recalculated</strong>, rather than being a verified
 computation in each case. We were unable to establish exactly which
 transformation first produced that figure.</p>
-<p>Tanis and Asar’s value (74.5281, Bell without an intercept, data
-centered and standardized into correlation form) could not be
-independently verified because Bell regression is not part of R base’s
-<code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> families; it is left as reported by the original
-source.</p>
-<table class="table">
-<colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
-</colgroup>
-<thead><tr class="header">
-<th></th>
-<th>Literature</th>
-<th>multiCollglm</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Transformation</td>
-<td>Unspecified / “correlation form” without intercept</td>
-<td>RAW/MP/MS/WS/OZ, with and without intercept (see tables)</td>
-</tr>
-<tr class="even">
-<td>Most-cited value</td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>8634.73</mn><annotation encoding="application/x-tex">8634.73</annotation></semantics></math>
-(identically repeated in 2 works with different distributions)</td>
-<td>Not reproducible with any of the 5 definitions</td>
-</tr>
-<tr class="odd">
-<td>Conclusion about collinearity</td>
-<td>Severe in all cases</td>
-<td>Severe in all cases, though the exact magnitude depends heavily on
-the chosen method</td>
-</tr>
-</tbody>
-</table>
+<p>Tanis and Asar’s <span class="citation">(2026)</span> value (74.5281,
+Bell without an intercept, data centered and standardized into
+correlation form) could not be independently verified because Bell
+regression is not part of R base’s <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> families; it is
+left as reported by the original source.</p>
 </div>
-<div class="section level2">
-<h2 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>The plastic plywood data show real, well-documented collinearity
-(strong correlations between shrinkage and assembly time, and between
-density and drying temperature), and that holds under any of the
-package’s five methods. But the specific figure of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>8634.73</mn><annotation encoding="application/x-tex">8634.73</annotation></semantics></math>
-that dominates this branch of the literature does not hold up: it is not
-reproducible from the verified data, and its identical repetition across
-three different distributions in Ashraf et al. (2025) is more consistent
-with a citation chain than with an independent calculation in each work.
-This is the same pattern already seen in other datasets covered by this
-package (Nitrogen, Mine): “reference” values that get passed from one
-article to the next without ever being recalculated.</p>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-ashraf2025" class="csl-entry">
+Ashraf, B., M. Amin, W. Emam, Y. Tashkandy, and M. Faisal. 2025.
+<span>“Negative Binomial Regression Model Estimation Using Stein
+Approach: Methods, Simulation, and Applications.”</span> <em>Journal of
+Mathematics</em> 2025 (1): 9134821. <a href="https://doi.org/10.1155/jom/9134821" class="external-link">https://doi.org/10.1155/jom/9134821</a>.
 </div>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h2>
-<ul>
-<li>Marcondes Filho, D. and Sant’Anna, A.M.P. (2016). Statistical
-process control applied to a plastic plywood manufacturing process.</li>
-<li>Sami, F., Amin, M. and Butt, M.M. (2022). On the ridge estimation of
-the Conway-Maxwell Poisson regression model with multicollinearity:
-Methods and applications. <em>Concurrency and Computation: Practice and
-Experience</em>, 34(1), e6477. <a href="https://doi.org/10.1002/cpe.6477" class="external-link uri">https://doi.org/10.1002/cpe.6477</a>
-</li>
-<li>Tanis, C. and Asar, Y. (2026). Almost unbiased Liu estimator in Bell
-regression model. <em>Communications in Statistics - Simulation and
-Computation</em>. <a href="https://doi.org/10.1080/03610918.2026.2648869" class="external-link uri">https://doi.org/10.1080/03610918.2026.2648869</a>
-</li>
-<li>Tanis, C. and Asar, Y. (2024). Almost unbiased ridge estimator in
-Bell regression model: theory and application to plastic polywood data.
-<em>Statistics</em>, 58(5), 1031-1045. <a href="https://doi.org/10.1080/02331888.2024.2389416" class="external-link uri">https://doi.org/10.1080/02331888.2024.2389416</a>
-</li>
-<li>Mammadova, U. and Ozkale, M.R. (2021). Profile monitoring for count
-data using Poisson and Conway-Maxwell-Poisson regression-based control
-charts under multicollinearity problem. <em>Journal of Computational and
-Applied Mathematics</em>, 388, 113275. <a href="https://doi.org/10.1016/j.cam.2020.113275" class="external-link uri">https://doi.org/10.1016/j.cam.2020.113275</a>
-</li>
-<li>Dawoud, I. (2025). New biased estimators for the
-Conway-Maxwell-Poisson model. <em>Journal of Statistical Computation and
-Simulation</em>, 95(1), 117-136. <a href="https://doi.org/10.1080/00949655.2024.2421317" class="external-link uri">https://doi.org/10.1080/00949655.2024.2421317</a>
-</li>
-<li>Ashraf, B., Amin, M., Emam, W., Tashkandy, Y. and Faisal, M. (2025).
-Negative Binomial Regression Model Estimation Using Stein Approach:
-Methods, Simulation, and Applications. <em>Journal of Mathematics</em>,
-2025(1), 9134821. <a href="https://doi.org/10.1155/jom/9134821" class="external-link uri">https://doi.org/10.1155/jom/9134821</a>
-</li>
-</ul>
+<div id="ref-dawoud2025" class="csl-entry">
+Dawoud, I. 2025. <span>“New Biased Estimators for the
+Conway-Maxwell-Poisson Model.”</span> <em>Journal of Statistical
+Computation and Simulation</em> 95 (1): 117–36. <a href="https://doi.org/10.1080/00949655.2024.2421317" class="external-link">https://doi.org/10.1080/00949655.2024.2421317</a>.
+</div>
+<div id="ref-mammadova2021" class="csl-entry">
+Mammadova, U., and M. R. Ozkale. 2021. <span>“Profile Monitoring for
+Count Data Using Poisson and Conway-Maxwell-Poisson Regression-Based
+Control Charts Under Multicollinearity Problem.”</span> <em>Journal of
+Computational and Applied Mathematics</em> 388: 113275. <a href="https://doi.org/10.1016/j.cam.2020.113275" class="external-link">https://doi.org/10.1016/j.cam.2020.113275</a>.
+</div>
+<div id="ref-marcondes2016" class="csl-entry">
+Marcondes Filho, D., and A. M. P. Sant’Anna. 2016. <em>Statistical
+Process Control Applied to a Plastic Plywood Manufacturing Process</em>.
+</div>
+<div id="ref-sami2022" class="csl-entry">
+Sami, F., M. Amin, and M. M. Butt. 2022. <span>“On the Ridge Estimation
+of the Conway-Maxwell Poisson Regression Model with Multicollinearity:
+Methods and Applications.”</span> <em>Concurrency and Computation:
+Practice and Experience</em> 34 (1): e6477. <a href="https://doi.org/10.1002/cpe.6477" class="external-link">https://doi.org/10.1002/cpe.6477</a>.
+</div>
+<div id="ref-tanis2024" class="csl-entry">
+Tanis, C., and Y. Asar. 2024. <span>“Almost Unbiased Ridge Estimator in
+Bell Regression Model: Theory and Application to Plastic Polywood
+Data.”</span> <em>Statistics</em> 58 (5): 1031–45. <a href="https://doi.org/10.1080/02331888.2024.2389416" class="external-link">https://doi.org/10.1080/02331888.2024.2389416</a>.
+</div>
+<div id="ref-tanis2026" class="csl-entry">
+Tanis, C., and Y. Asar. 2026. <span>“Almost Unbiased Liu Estimator in
+Bell Regression Model.”</span> <em>Communications in Statistics -
+Simulation and Computation</em>, ahead of print. <a href="https://doi.org/10.1080/03610918.2026.2648869" class="external-link">https://doi.org/10.1080/03610918.2026.2648869</a>.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

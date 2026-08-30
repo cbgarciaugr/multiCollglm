@@ -48,7 +48,7 @@ summary(mod)
 
 \[Explain what transformation (or lack of one) the original work
 applied: for example, classical VIF on the unweighted matrix, or data
-centered before computing the condition number.\]
+centered before computing `CN`.\]
 
 ``` r
 
@@ -78,16 +78,16 @@ condition_number(mod)
 #> Eigenvalues of X_unit'X_unit (decreasing order):
 #> [1] 3.2960 0.5203 0.1835 0.0002
 #> 
-#> Condition number (eigenvalue scale): 15364.1028
-#> Condition index (classical, sqrt): 123.9520
+#> CN (eigenvalue scale): 15364.1028
+#> sqrt(CN) (classical, singular-value scale): 123.9520
 bkw_diagnostics(mod)
 #> Collinearity diagnostics (Belsley-Kuh-Welsch)
 #> 
-#>      Eigenvalue Sing.value Condition_index
-#> dim1      3.296      1.815           1.000
-#> dim2      0.520      0.721           2.517
-#> dim3      0.184      0.428           4.238
-#> dim4      0.000      0.015         123.952
+#>      Eigenvalue Sing.value sqrt(CN)
+#> dim1      3.296      1.815    1.000
+#> dim2      0.520      0.721    2.517
+#> dim3      0.184      0.428    4.238
+#> dim4      0.000      0.015  123.952
 #> 
 #> Variance-decomposition proportions (row = coefficient, column = component):
 #>              dim1  dim2  dim3  dim4
@@ -96,8 +96,8 @@ bkw_diagnostics(mod)
 #> x2          0.000 0.000 0.000 1.000
 #> x3          0.031 0.920 0.027 0.022
 #> 
-#> >> Possible collinearity problems (condition index >= 10 and proportion >= 0.5 on >= 2 variables):
-#>   - dim4 (index = 123.95): x1, x2
+#> >> Possible collinearity problems (sqrt(CN) >= 10 and proportion >= 0.5 on >= 2 variables):
+#>   - dim4 (sqrt(CN) = 123.95): x1, x2
 rvif_diagnostics(mod)
 #> Redefined Variance Inflation Factor (RVIF)
 #> 
@@ -128,12 +128,16 @@ been applied correctly.\]
 
 ## References
 
-- \[Full citation of the original work, in APA/the format used by the
-  package.\]
-- Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). *Regression
-  Diagnostics: Identifying Influential Data and Sources of
-  Collinearity*. Wiley.
-- Salmeron, R., Garcia, C.B. and Garcia, J. (2025). A redefined Variance
-  Inflation Factor: overcoming the limitations of the Variance Inflation
-  Factor. *Computational Economics*, 65, 337-363.
-  <https://doi.org/10.1007/s10614-024-10575-8>
+(Cite the original work here with its **key?**, e.g. `[-@author2024]`,
+and add its BibTeX entry to `vignettes/references.bib`.) The two
+references below are cited throughout this package’s diagnostics
+(Belsley et al. 1980; Salmerón et al. 2025), and will render
+automatically here once cited above.
+
+Belsley, D. A., E. Kuh, and R. E. Welsch. 1980. *Regression Diagnostics:
+Identifying Influential Data and Sources of Collinearity*. Wiley.
+
+Salmerón, R., C. B. García, and J. García. 2025. “A Redefined Variance
+Inflation Factor: Overcoming the Limitations of the Variance Inflation
+Factor.” *Computational Economics* 65: 337–63.
+<https://doi.org/10.1007/s10614-024-10575-8>.

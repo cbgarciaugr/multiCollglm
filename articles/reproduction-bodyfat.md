@@ -8,16 +8,15 @@ women. The response, `DEXfat`, is the percentage body fat measured by
 dual-energy X-ray absorptiometry (DXA); the regressors include age,
 waist and hip circumference, elbow and knee breadth, and several derived
 anthropometric variables (`anthro3a`, `anthro3b`, `anthro3c`,
-`anthro4`). The original goal is to predict body fat from simpler
-anthropometric measurements.
+`anthro4`). The original goal, following the body-composition prediction
+approach of Penrose, Nelson and Fisher (1985), is to predict body fat
+from simpler anthropometric measurements.
 
 Five of the reviewed works use this dataset under a Gamma distribution:
-Almuqrin and AbaOud (2025) \[`review23`\], Al-Ghamdi et al. (2025)
-\[`review44`\], Asar and Korkmaz (2022) \[`review51`\], Seifollahi et
-al. (2024) \[`review76`\] and El-Masry et al. (2025) \[`review127`\].
-All of them state that they compute the condition number as the square
-root of the ratio between the largest and smallest eigenvalue of
-$`X'\hat{W}X`$.
+Almuqrin and AbaOud (2025), Al-Ghamdi et al. (2025), Asar and Korkmaz
+(2022), Seifollahi et al. (2024) and El-Masry et al. (2025). All of them
+state that they compute their $`CN`$ as the square root of the ratio
+between the largest and smallest eigenvalue of $`X'\hat{W}X`$.
 
 ## Data
 
@@ -45,46 +44,17 @@ str(bodyfat)
 mod <- glm(DEXfat ~ age + waistcirc + hipcirc + elbowbreadth + kneebreadth +
              anthro3a + anthro3b + anthro3c + anthro4,
            family = Gamma(link = "log"), data = bodyfat)
-summary(mod)
-#> 
-#> Call:
-#> glm(formula = DEXfat ~ age + waistcirc + hipcirc + elbowbreadth + 
-#>     kneebreadth + anthro3a + anthro3b + anthro3c + anthro4, family = Gamma(link = "log"), 
-#>     data = bodyfat)
-#> 
-#> Coefficients:
-#>               Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  -0.219467   0.233499  -0.940   0.3510    
-#> age           0.001606   0.001001   1.605   0.1138    
-#> waistcirc     0.004196   0.002086   2.012   0.0487 *  
-#> hipcirc       0.010772   0.002497   4.315 5.95e-05 ***
-#> elbowbreadth  0.014118   0.031775   0.444   0.6584    
-#> kneebreadth   0.042557   0.022519   1.890   0.0635 .  
-#> anthro3a     -0.122724   0.161763  -0.759   0.4510    
-#> anthro3b      0.140431   0.175752   0.799   0.4274    
-#> anthro3c      0.129183   0.064844   1.992   0.0508 .  
-#> anthro4       0.163679   0.201576   0.812   0.4199    
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> (Dispersion parameter for Gamma family taken to be 0.01038517)
-#> 
-#>     Null deviance: 9.55963  on 70  degrees of freedom
-#> Residual deviance: 0.60848  on 61  degrees of freedom
-#> AIC: 362.74
-#> 
-#> Number of Fisher Scoring iterations: 4
 ```
 
-## Original diagnostic (a tour of the literature)
+## Diagnostic with multiCollglm and comparison with literature
 
-Almuqrin and AbaOud (2025), Al-Ghamdi et al. (2025) and El-Masry et al.
-(2025) report an identical value, $`CN = 3394.30`$; none of them
-explicitly states which link function was used, so we could not
-reproduce that specific value. Asar and Korkmaz (2022) do specify a log
-link and untransformed data, and obtain $`CN = 3410.63`$. Seifollahi et
-al. (2024) also claims to use a log link but reports a different value,
-$`CN =
+Almuqrin and AbaOud (2025), Al-Ghamdi et al. (2025) and El-Masry et al.
+(2025) report an identical value, $`CN =
+3394.30`$; none of them explicitly states which link function was used,
+so we could not reproduce that specific value. Asar and Korkmaz (2022)
+do specify a log link and untransformed data, and obtain
+$`CN = 3410.63`$. Seifollahi et al. (2024) also claims to use a log link
+but reports a different value, $`CN =
 4026.23`$ – an inconsistency within the literature itself, since two
 works that claim to follow exactly the same procedure (Gamma, log,
 untransformed) do not agree with each other.
@@ -93,30 +63,16 @@ untransformed) do not agree with each other.
 
 ``` r
 
-methods <- c("RAW", "MP", "MS", "WS", "OZ")
-
-tbl <- do.call(rbind, lapply(methods, function(m) {
-  res <- tryCatch(condition_number(mod, method = m),
-                   error = function(e) NULL)
-  if (is.null(res)) {
-    data.frame(method = m, nc_label = NA, condition_number = NA,
-               condition_index = NA)
-  } else {
-    data.frame(method = m, nc_label = res$nc_label,
-               condition_number = res$condition_number,
-               condition_index = res$condition_index)
-  }
-}))
 knitr::kable(tbl, digits = 4)
 ```
 
-| method | nc_label | condition_number | condition_index |
-|:-------|:---------|-----------------:|----------------:|
-| RAW    | NC_RAW   |     1.163241e+07 |       3410.6317 |
-| MP     | NC_MP    |     1.239331e+05 |        352.0413 |
-| MS     | NC_MS    |     1.196367e+04 |        109.3785 |
-| WS     | NC_WS    |     1.239331e+05 |        352.0413 |
-| OZ     | NC_OZ    |     9.811259e+02 |         31.3229 |
+| method | nc_label |           CN |  sqrt(CN) |
+|:-------|:---------|-------------:|----------:|
+| RAW    | NC_RAW   | 1.163241e+07 | 3410.6317 |
+| MP     | NC_MP    | 1.239331e+05 |  352.0413 |
+| MS     | NC_MS    | 1.196367e+04 |  109.3785 |
+| WS     | NC_WS    | 1.239331e+05 |  352.0413 |
+| OZ     | NC_OZ    | 9.811259e+02 |   31.3229 |
 
 A notable feature of this table: `"MP"` and `"WS"` agree **exactly**
 (not just approximately). The reason is structural, specific to this
@@ -139,69 +95,49 @@ range(mod$weights)
 With IRLS weights identically equal to 1, weighting by $`\hat{W}^{1/2}`$
 does nothing (it’s the same as the unweighted matrix), so rescaling to
 unit length *before* fitting (`"MP"`) or *after* fitting (`"WS"`)
-produces exactly the same matrix, and hence the same condition number.
-This is the log-link analogue, for Gamma, of the identity already
-documented for Gamma with the canonical inverse link
-(`sqrt(w) * eta ≡ 1`, see
+produces exactly the same matrix, and hence the same $`CN`$. This is the
+log-link analogue, for Gamma, of the identity already documented for
+Gamma with the canonical inverse link (`sqrt(w) * eta ≡ 1`, see
 [`?condition_number`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)):
 every family/link combination has its own structural identity in the
 IRLS weights, and it is worth keeping in mind when interpreting any
 weighted collinearity diagnostic.
 
-## Comparison
-
-|  | Literature | multiCollglm |
-|----|----|----|
-| Untransformed (`"RAW"`) | $`CN = 3410.63`$ (Asar and Korkmaz 2022, square root) | 3410.6317 |
-| Rescaled to unit length, no centering | $`CN \approx 352.04`$ | 352.0413 |
-| Centered + scaled (`"OZ"`) | – | 31.3229 |
-
-Asar and Korkmaz’s (2022) value reproduces with `method = "RAW"` to four
-decimal places: **3410.6317** versus their **3410.63**. The “consensus”
-value from the other three works (3394.30) comes very close but not
-exactly, which suggests they used a slightly different link (or some
-minor sampling variant) that they did not document; and Seifollahi et
-al.’s (2024) value, despite claiming the same procedure as Asar and
-Korkmaz, is close to neither.
-
-## Conclusion
-
-Once the already IRLS-weighted matrix is rescaled to unit length without
-centering (`"WS"`), the condition number drops from the thousands to a
-few hundred: the conclusion of severe collinearity holds, but is no
-longer dominated by the disparity in scale between variables as
-different as age (in years) and elbow breadth (in centimeters). The more
-interesting finding for this dataset, however, is the structural
-identity of the IRLS weights under Gamma with a log link: because they
-are always equal to 1, two of the package’s five methods coincide
-exactly, which does not happen in general for other family/link
-combinations (see the Nitrogen article, where none of the five methods
-agree with each other).
+Asar and Korkmaz’s (2022) value reproduces with `method = "RAW"`
+(3410.63). The “consensus” value from the other three works (3394.30)
+comes very close but not exactly, which suggests they used a slightly
+different link (or some minor sampling variant) that they did not
+document; and Seifollahi et al.’s (2024) value, despite claiming the
+same procedure as Asar and Korkmaz, is close to neither.
 
 ## References
 
-- Penrose, K.W., Nelson, A.G. and Fisher, A.G. (1985). Generalized body
-  composition prediction equation for men using simple measurement
-  techniques. *Medicine & Science in Sports & Exercise*, 17(2), 189.
-- Almuqrin, M.A. and AbaOud, M. (2025). Developing a new modified
-  two-parameter Liu estimator for the gamma regression model: Method,
-  simulation and application to health data. *Alexandria Engineering
-  Journal*, 129, 1212-1222. <https://doi.org/10.1016/j.aej.2025.08.033>
-- Al-Ghamdi, M.N., Abonazel, M.R., Dawoud, I., Algamal, Z.Y. and Azazy,
-  A.R. (2025). A new estimator of the gamma regression model: theory,
-  simulation, and application to body fat data. *Communications in
-  Mathematical Biology and Neuroscience*, 2025, Article 53.
-  <https://doi.org/10.28919/cmbn/9149>
-- Asar, Y. and Korkmaz, M. (2022). Almost unbiased Liu-type estimators
-  in gamma regression model. *Journal of Computational and Applied
-  Mathematics*, 403, 113819. <https://doi.org/10.1016/j.cam.2021.113819>
-- Seifollahi, S., Bevrani, H. and Kamary, K. (2024). Inequality
-  restricted estimator for gamma regression: Bayesian approach as a
-  solution to the multicollinearity. *Communications in Statistics -
-  Theory and Methods*, 53(23), 8297-8311.
-  <https://doi.org/10.1080/03610926.2023.2281267>
-- El-Masry, A.M., Abu-Hamed, A.A., Abonazel, M.R., Omara, T.M. and
-  Khattab, I.G. (2025). A new gamma regression estimate of female body
-  fat percentage: advanced statistical modeling. *Communications in
-  Mathematical Biology and Neuroscience*, 2025, Article 133.
-  <https://doi.org/10.28919/cmbn/9493>
+Al-Ghamdi, M. N., M. R. Abonazel, I. Dawoud, Z. Y. Algamal, and A. R.
+Azazy. 2025. “A New Estimator of the Gamma Regression Model: Theory,
+Simulation, and Application to Body Fat Data.” *Communications in
+Mathematical Biology and Neuroscience* 2025.
+<https://doi.org/10.28919/cmbn/9149>.
+
+Almuqrin, M. A., and M. AbaOud. 2025. “Developing a New Modified
+Two-Parameter Liu Estimator for the Gamma Regression Model: Method,
+Simulation and Application to Health Data.” *Alexandria Engineering
+Journal* 129: 1212–22. <https://doi.org/10.1016/j.aej.2025.08.033>.
+
+Asar, Y., and M. Korkmaz. 2022. “Almost Unbiased Liu-Type Estimators in
+Gamma Regression Model.” *Journal of Computational and Applied
+Mathematics* 403: 113819. <https://doi.org/10.1016/j.cam.2021.113819>.
+
+El-Masry, A. M., A. A. Abu-Hamed, M. R. Abonazel, T. M. Omara, and I. G.
+Khattab. 2025. “A New Gamma Regression Estimate of Female Body Fat
+Percentage: Advanced Statistical Modeling.” *Communications in
+Mathematical Biology and Neuroscience* 2025.
+<https://doi.org/10.28919/cmbn/9493>.
+
+Penrose, K. W., A. G. Nelson, and A. G. Fisher. 1985. “Generalized Body
+Composition Prediction Equation for Men Using Simple Measurement
+Techniques.” *Medicine & Science in Sports & Exercise* 17 (2): 189.
+
+Seifollahi, S., H. Bevrani, and K. Kamary. 2024. “Inequality Restricted
+Estimator for Gamma Regression: Bayesian Approach as a Solution to the
+Multicollinearity.” *Communications in Statistics - Theory and Methods*
+53 (23): 8297–311. <https://doi.org/10.1080/03610926.2023.2281267>.

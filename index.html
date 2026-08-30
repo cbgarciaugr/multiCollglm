@@ -53,7 +53,7 @@
 <p>Collinearity diagnostics for generalized linear models (GLMs), on <code>glm</code> objects or on regularized models fitted with <code>glmnet</code> / <code>cv.glmnet</code>.</p>
 <p>All three diagnostics (<code><a href="reference/condition_number.html">condition_number()</a></code>, <code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> and <code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code>) are computed, generically for any family and link function, on the design matrix weighted by the IRLS weights at convergence (<code>mod$weights</code>). By default that matrix is scaled to unit length by column and <strong>not</strong> centered — this is the Weissfeld and Sereika (1991) definition, described in detail below. <code><a href="reference/condition_number.html">condition_number()</a></code> also lets you pick one of five published condition-number definitions directly via its <code>method</code> argument, or build a custom transformation yourself with <code>center</code>/<code>scale</code>.</p>
 <p>For <code>glmnet</code>/<code>cv.glmnet</code>, since there is no IRLS fit and no convergence weights, the package identifies the active set of variables at the given <code>lambda</code> and refits a standard <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> on them so the same diagnostics can be computed.</p>
-<p>See <code><a href="articles/multiCollglm.html">vignette("multiCollglm")</a></code> for a getting-started guide, and the <a href="https://cbgarciaugr.github.io/multiCollglm/">package website</a> for worked reproductions of published works — using the four example datasets bundled with the package (<code>Nitrogen</code>, <code>Mine</code>, <code>LeeCancer</code>, <code>Plastic</code>; see <code><a href="reference/Nitrogen.html">?Nitrogen</a></code> etc.) — where collinearity was diagnosed without the correct data transformation, compared against the results from this package.</p>
+<p>See <code><a href="articles/multiCollglm.html">vignette("multiCollglm")</a></code> for a getting-started guide, and the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/index.html">package website</a> for worked reproductions of published works, using four example datasets bundled with the package (<code>LeeCancer</code>, <code>Nitrogen</code>, <code>Mine</code>,<code>Plastic</code>) and a fifth (<code>Bodyfat</code> included in <code>TH.data</code> package).</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -74,7 +74,7 @@
 <span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/bkw_diagnostics.html">bkw_diagnostics</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/rvif_diagnostics.html">rvif_diagnostics</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<p><code>condition_number(mod)</code>, with no <code>method</code> argument, reproduces exactly the calculation:</p>
+<p><code>condition_number(mod)</code>, with no <code>method</code> argument, reproduces exactly the calculation proposed by Weissfeld and Sereika (1991):</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
@@ -85,12 +85,12 @@
 <span><span class="va">eig_star</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eigen.html" class="external-link">eigen</a></span><span class="op">(</span><span class="va">M_star</span>, symmetric <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">values</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">CN</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">eig_star</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">eig_star</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">CN</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code> calls <a href="https://cran.r-project.org/package=rvif" class="external-link"><code>rvif::rvifs()</code></a> on that same <code>X_unit</code> matrix (with <code>ul = TRUE</code>, so it is re-scaled to unit length right before the RVIF is computed, a no-op under the default transformation) to get the Redefined Variance Inflation Factor of Salmeron, Garcia and Garcia (2025), which is able to detect both essential and non-essential collinearity and decomposes the percentage of near collinearity attributable to each variable.</p>
+<p><code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code> calls <a href="https://cran.r-project.org/package=rvif" class="external-link"><code>rvif::rvifs()</code></a> on that same <code>X_unit</code> matrix (with <code>ul = TRUE</code>, so it is re-scaled to unit length right before the RVIF is computed, a no-op under the default transformation) to get the Redefined Variance Inflation Factor of @salmeron2025, which is able to detect both essential and non-essential collinearity and decomposes the percentage of near collinearity attributable to each variable.</p>
 </div>
 <div class="section level2">
 <h2 id="condition-number-methods-method-argument">Condition-number methods (<code>method</code> argument)<a class="anchor" aria-label="anchor" href="#condition-number-methods-method-argument"></a>
 </h2>
-<p><code><a href="reference/condition_number.html">condition_number()</a></code> accepts a <code>method</code> argument that is a shortcut for five published (or, for <code>"RAW"</code>, textbook-baseline) definitions of the condition number for a GLM. Passing <code>method</code> overrides whatever <code>center</code>/<code>scale</code> you supplied and labels the result accordingly (<code>nc_label</code>: <code>NC_RAW</code>, <code>NC_MP</code>, <code>NC_MS</code>, <code>NC_WS</code> or <code>NC_OZ</code>):</p>
+<p><code><a href="reference/condition_number.html">condition_number()</a></code> accepts a <code>method</code> argument that is a shortcut for four published definitions of the CN for a GLM (<code>nc_label</code>: <code>NC_MP</code>, <code>NC_MS</code>, <code>NC_WS</code> or <code>NC_OZ</code>). It is also included a method that does not include transformation (<code>NC_RAW</code>). Passing <code>method</code> overrides whatever <code>center</code>/<code>scale</code> you supplied and labels the result accordingly:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"RAW"</span><span class="op">)</span> <span class="co"># no transformation at all</span></span>
 <span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MP"</span><span class="op">)</span>  <span class="co"># Mackinnon and Puterman (1989)</span></span>
@@ -106,33 +106,33 @@
 <thead><tr>
 <th><code>method</code></th>
 <th>Transformation</th>
-<th>Refits the GLM?</th>
+<th>Comments</th>
 </tr></thead>
 <tbody>
 <tr>
 <td><code>"RAW"</code></td>
 <td>None at all: eigenvalues of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mo>′</mo></msup><mover><mi>W</mi><mo accent="true">̂</mo></mover><mi>X</mi></mrow><annotation encoding="application/x-tex">X'\hat{W}X</annotation></semantics></math> directly (intercept included, no centering, no scaling). The plain baseline against which the other four can be judged — usually dominated by however differently-scaled the explanatory variables happen to be.</td>
-<td>No</td>
+<td></td>
 </tr>
 <tr>
 <td><code>"MP"</code></td>
-<td>Mackinnon and Puterman (1989). The <em>original</em> explanatory variables (intercept included) are rescaled to unit Euclidean length with <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::lu()</code></a> <strong>before</strong> fitting.</td>
-<td>Yes (mathematically redundant — a GLM’s IRLS weights at convergence are invariant to any linear rescaling of <code>X</code> — but done explicitly to mirror the original definition).</td>
+<td>@mackinnon1989. The <em>original</em> explanatory variables (intercept included) are rescaled to unit Euclidean length with <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::lu()</code></a> <strong>before</strong> fitting.</td>
+<td>A GLM’s IRLS weights at convergence are invariant to any linear rescaling of <code>X</code> — but done explicitly to mirror the original definition).</td>
 </tr>
 <tr>
 <td><code>"MS"</code></td>
-<td>Marx and Smith (1990). The explanatory variables (excluding the intercept, if any) are <strong>centered on their own mean and rescaled to unit Euclidean length before fitting</strong>, with an ordinary intercept re-added if the original model had one.</td>
-<td>Yes, and — unlike <code>"MP"</code> — this one is <em>not</em> redundant: centering shifts the fitted values themselves, so the refit is genuinely different from <code>model</code>.</td>
+<td>@marx1990. The explanatory variables (excluding the intercept, if any) are <strong>centered on their own mean and rescaled to unit Euclidean length before fitting</strong>, with an ordinary intercept re-added if the original model had one.</td>
+<td>Unlike <code>"MP"</code> centering shifts the fitted values themselves, so the refit is genuinely different from <code>model</code>.</td>
 </tr>
 <tr>
 <td><code>"WS"</code></td>
-<td>Weissfeld and Sereika (1991), the package default. The GLM is fit on the original variables and the IRLS-weighted information matrix is scaled to unit column length <em>afterwards</em> (no centering).</td>
-<td>No</td>
+<td>@weissfeld1991, the package default. The GLM is fit on the original variables and the IRLS-weighted information matrix is scaled to unit column length <em>afterwards</em> (no centering).</td>
+<td></td>
 </tr>
 <tr>
 <td><code>"OZ"</code></td>
-<td>Ozkale (2019). Same as <code>"WS"</code>, but the IRLS-weighted design matrix is additionally <strong>centered</strong> before being scaled to unit length. If <code>model</code> has an intercept, its column is <strong>dropped</strong> before centering/scaling (every worked example in Ozkale 2019, Sec. 5, fits without an intercept term).</td>
-<td>No</td>
+<td>@ozkale2021. Same as <code>"WS"</code>, but the IRLS-weighted design matrix is additionally <strong>centered</strong> before being scaled to unit length. If <code>model</code> has an intercept, its column is <strong>dropped</strong> before centering/scaling (every worked example in Ozkale 2019, Sec. 5, fits without an intercept term).</td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -141,13 +141,9 @@
 <li>
 <strong><code>"MP"</code> requires the <code>multiColl</code> package</strong> (<code>Suggests</code>, not a hard dependency); it errors with an informative message if it isn’t installed.</li>
 <li>
-<strong><code>"MS"</code> can fail to converge for a model with no intercept.</strong> Centering removes every column’s mean, leaving nothing to absorb the new baseline; for some family/link combinations (most notably Gamma with the inverse link, which needs strictly positive fitted values) the refit’s IRLS iteration can diverge. When that happens you get an informative error explaining why, rather than a bare <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> warning — this is expected for that combination and is not a bug: Marx and Smith
-<ol start="1990" style="list-style-type: decimal">
-<li>developed the method for logistic regression models, which ordinarily do include an intercept. If you hit this, use <code>"WS"</code> or <code>"OZ"</code> for that particular model instead.</li>
-</ol>
-</li>
+<strong><code>"MS"</code> can fail to converge for a model with no intercept.</strong> Centering removes every column’s mean. For some family/link combinations (most notably Gamma with the inverse link, which needs strictly positive fitted values) the refit’s IRLS iteration can diverge. When that happens you get an informative error explaining why this is expected for that combination and is not a bug: @marx1990 developed the method for logistic regression models, which ordinarily do include an intercept. If you hit this, use <code>"WS"</code> or <code>"OZ"</code> for that particular model instead.</li>
 <li>
-<strong>Centering an IRLS-weighted design matrix that includes an intercept can leave it exactly rank-deficient</strong> for <em>some</em> family/link combinations — not a general canonical-link fact, but a structural identity of the Gamma family with its canonical (inverse) link specifically (<code>sqrt(w) * eta</code> is exactly 1 for every observation, regardless of whether an intercept is present). <code>"OZ"</code> sidesteps this for most families by dropping the intercept before centering, but for Gamma-inverse the singularity is structural either way and <code>NC_OZ</code> will then legitimately come back as <code>Inf</code> with a warning. See <code><a href="reference/condition_number.html">?condition_number</a></code> for the full explanation, and the <code>Nitrogen</code> reproduction article on the package website for a worked example.</li>
+<strong>Centering an IRLS-weighted design matrix that includes an intercept can leave it exactly rank-deficient</strong> for <em>some</em> family/link combinations (for example the Gamma family with its canonical (inverse) link specifically (<code>sqrt(w) * eta</code> is exactly 1 for every observation, regardless of whether an intercept is present). <code>"OZ"</code> sidesteps this for most families by dropping the intercept before centering, but for Gamma-inverse the singularity is structural either way and <code>NC_OZ</code> will then legitimately come back as <code>Inf</code> with a warning. See <a href=""><code>Nitrogen</code> reproduction article</a> on the package website for a worked example.</li>
 <li>Leave <code>method = NULL</code> (the default) to keep using <code>center</code>/<code>scale</code> directly, exactly as in earlier versions of this function — see the next section.</li>
 </ul>
 </div>
@@ -159,12 +155,14 @@
 <li>
 <code>center</code>: <code>FALSE</code> (default), <code>TRUE</code> (subtract column means), or a numeric vector of per-column values to subtract.</li>
 <li>
-<code>scale</code>: <code>"unit"</code> (default; Euclidean/L2 unit-length columns, the transformation originally proposed), <code>TRUE</code> (root-mean-square scaling), <code>FALSE</code> (no scaling), or a numeric vector of per-column divisors.</li>
+<code>scale</code>: <code>TRUE</code> (root-mean-square scaling), <code>FALSE</code> (no scaling), or a numeric vector of per-column divisors.</li>
 </ul>
+<p>In addition, <code>scale</code> accept also <code>"unit"</code>, for unit legth transformation:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># root-mean-square scaling instead of unit length</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, scale<span class="op">=</span><span class="st">"unit"</span><span class="op">)</span> <span class="co"># unit length transformation</span></span>
+<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># root-mean-square scaling instead of unit length</span></span>
 <span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co"># no scaling at all</span></span></code></pre></div>
-<p><code>scale = TRUE</code> rescales every eigenvalue by the same factor (<code>nrow(X) - 1</code>) relative to the default <code>scale = "unit"</code>, so the condition number and condition index are unaffected; <code>scale = FALSE</code> or a custom numeric vector generally do change them, since the columns are no longer put on a comparable scale.</p>
+<p>scale = TRUE rescales every eigenvalue by the same factor (nrow(X) - 1) relative to the default scale = “unit”, so CN and sqrt(CN) are unaffected; scale = FALSE or a custom numeric vector generally do change them, since the columns are no longer put on a comparable scale.</p>
 <p><strong>Do not use <code>center = TRUE</code></strong> with an intercept model unless you know what you are doing, for the same reason described above for <code>"OZ"</code>: <code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> and <code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code> detect the resulting rank-deficiency and raise an informative error rather than returning <code>NaN</code>; this is precisely why Belsley, Kuh and Welsch recommend against centering for collinearity diagnostics. If you specifically want a centered diagnostic, prefer <code>method = "OZ"</code> or <code>method = "MS"</code>, which handle the intercept column correctly instead of centering it directly.</p>
 </div>
 <div class="section level2">
@@ -198,29 +196,16 @@
 <div class="section level2">
 <h2 id="bkw-rule-of-thumb">BKW rule of thumb<a class="anchor" aria-label="anchor" href="#bkw-rule-of-thumb"></a>
 </h2>
-<p><code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> flags as suspicious any dimension whose condition index is <code>&gt;= 10</code> and on which at least two coefficients have a variance proportion <code>&gt;= 0.5</code> (Belsley, Kuh and Welsch, 1980). The condition index is on the singular-value (square-rooted) scale, so this threshold of 10 corresponds to a condition number of 100 on the eigenvalue scale used by <code><a href="reference/condition_number.html">condition_number()</a></code> (<code>condition_index = sqrt(condition_number)</code>). Both thresholds are adjustable via <code>index_threshold</code> and <code>proportion_threshold</code>.</p>
+<p><code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> flags as suspicious any dimension whose <code>sqrt(CN)</code> is <code>&gt;= 10</code> and on which at least two coefficients have a variance proportion <code>&gt;= 0.5</code> (@belsley1980). <code>sqrt(CN)</code> is on the singular-value (square-rooted) scale, so this threshold of 10 corresponds to a <code>CN</code> of 100 on the eigenvalue scale used by <code><a href="reference/condition_number.html">condition_number()</a></code> (<code>sqrt(CN)</code> is simply the square root of <code>CN</code>, i.e. <code>condition_index = sqrt(condition_number)</code>). Both thresholds are adjustable via <code>index_threshold</code> and <code>proportion_threshold</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="example-datasets">Example datasets<a class="anchor" aria-label="anchor" href="#example-datasets"></a>
 </h2>
-<p>Four real datasets used throughout the package’s reproduction articles ship with the package (<code>data(Nitrogen)</code>, <code>data(Mine)</code>, <code>data(LeeCancer)</code>, <code>data(Plastic)</code>; see each dataset’s help page, e.g. <code><a href="reference/LeeCancer.html">?LeeCancer</a></code>, for its variables and source). A fifth, <code>bodyfat</code>, is used in one article but not bundled here since it already ships in the <a href="https://cran.r-project.org/package=TH.data" class="external-link"><code>TH.data</code></a> package.</p>
+<p>Four real datasets used throughout the package’s reproduction articles ship with the package (<code>data(Nitrogen)</code>, <code>data(Mine)</code>, <code>data(LeeCancer)</code>, <code>data(Plastic)</code>. A fifth, <code>bodyfat</code>, is used but not bundled here since it already ships in the <a href="https://cran.r-project.org/package=TH.data" class="external-link"><code>TH.data</code></a> package.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<ul>
-<li>Mackinnon, M.J. and Puterman, M.L. (1989). Collinearity in generalized linear models. <em>Communications in Statistics - Theory and Methods</em>, 18(9), 3463-3472. <a href="https://doi.org/10.1080/03610928908830102" class="external-link uri">https://doi.org/10.1080/03610928908830102</a>
-</li>
-<li>Marx, B.D. and Smith, E.P. (1990). Weighted multicollinearity in logistic regression: diagnostics and biased estimation techniques with an example from lake acidification. <em>Canadian Journal of Fisheries and Aquatic Sciences</em>, 47(6), 1128-1135. <a href="https://doi.org/10.1139/f90-131" class="external-link uri">https://doi.org/10.1139/f90-131</a>
-</li>
-<li>Weissfeld, L.A. and Sereika, S.M. (1991). A multicollinearity diagnostic for generalized linear models. <em>Communications in Statistics - Theory and Methods</em>, 20(4), 1183-1198. <a href="https://doi.org/10.1080/03610929108830558" class="external-link uri">https://doi.org/10.1080/03610929108830558</a>
-</li>
-<li>Ozkale, M.R. (2019). The red indicator and corrected VIFs in generalized linear models. <em>Communications in Statistics - Simulation and Computation</em>. <a href="https://doi.org/10.1080/03610918.2019.1639740" class="external-link uri">https://doi.org/10.1080/03610918.2019.1639740</a>
-</li>
-<li>Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). <em>Regression Diagnostics: Identifying Influential Data and Sources of Collinearity</em>. Wiley.</li>
-<li>Salmeron, R., Garcia, C.B. and Garcia, J. (2025). A redefined Variance Inflation Factor: overcoming the limitations of the Variance Inflation Factor. <em>Computational Economics</em>, 65, 337-363. <a href="https://doi.org/10.1007/s10614-024-10575-8" class="external-link uri">https://doi.org/10.1007/s10614-024-10575-8</a>
-</li>
-</ul>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

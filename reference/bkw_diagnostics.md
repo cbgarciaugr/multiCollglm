@@ -2,7 +2,7 @@
 
 Computes, over the design matrix weighted by the IRLS weights at
 convergence and, by default, scaled to unit length (without centering),
-the condition index per component and the Belsley, Kuh and Welsch (1980)
+`sqrt(CN)` per component and the Belsley, Kuh and Welsch (1980)
 variance-decomposition proportion matrix, which identifies which
 coefficients are involved in each collinearity relationship.
 
@@ -84,9 +84,8 @@ bkw_diagnostics(
 
 - index_threshold:
 
-  Condition-index threshold used to flag a dimension as suspicious
-  (default 10, i.e. a condition number of 100 before taking the square
-  root).
+  `sqrt(CN)` threshold used to flag a dimension as suspicious (default
+  10, i.e. a `CN` of 100 before taking the square root).
 
 - proportion_threshold:
 
@@ -113,27 +112,27 @@ bkw_diagnostics(
 
   Either `"unit"` (default; each column is scaled to Euclidean/L2 unit
   length, as originally proposed and required for the classical
-  condition-index thresholds and the RVIF formula) or any value accepted
-  by [`scale()`](https://rdrr.io/r/base/scale.html)'s own `scale`
-  argument: `TRUE` for root-mean-square scaling, `FALSE` for no scaling,
-  or a numeric vector of per-column divisors.
+  `sqrt(CN)` thresholds and the RVIF formula) or any value accepted by
+  [`scale()`](https://rdrr.io/r/base/scale.html)'s own `scale` argument:
+  `TRUE` for root-mean-square scaling, `FALSE` for no scaling, or a
+  numeric vector of per-column divisors.
 
 ## Value
 
 An object of class `multicollglm_bkw` with the eigenvalues, singular
-values, condition indices, the proportions matrix (`proportions`, one
-row per coefficient and one column per component), and the list of
-flagged dimensions (`flagged`).
+values, `sqrt(CN)` per component (`condition_index`), the proportions
+matrix (`proportions`, one row per coefficient and one column per
+component), and the list of flagged dimensions (`flagged`).
 
 ## Details
 
-A dimension is flagged as problematic when its condition index is
-greater than or equal to `index_threshold` and at least two coefficients
-have a variance proportion greater than or equal to
-`proportion_threshold` on that dimension. The default
-`index_threshold = 10` corresponds to a condition number of 100 on the
-eigenvalue (non-square-rooted) scale, since
-`condition_index = sqrt(condition_number)`.
+A dimension is flagged as problematic when its `sqrt(CN)` is greater
+than or equal to `index_threshold` and at least two coefficients have a
+variance proportion greater than or equal to `proportion_threshold` on
+that dimension. The default `index_threshold = 10` corresponds to a `CN`
+of 100 on the eigenvalue (non-square-rooted) scale, since each
+component's `sqrt(CN)` is simply the square root of that component's
+`CN`.
 
 ## Examples
 
@@ -147,12 +146,12 @@ mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"))
 bkw_diagnostics(mod)
 #> Collinearity diagnostics (Belsley-Kuh-Welsch)
 #> 
-#>      Eigenvalue Sing.value Condition_index
-#> dim1      3.266      1.807           1.000
-#> dim2      0.881      0.939           1.925
-#> dim3      0.621      0.788           2.294
-#> dim4      0.231      0.481           3.756
-#> dim5      0.000      0.018         100.614
+#>      Eigenvalue Sing.value sqrt(CN)
+#> dim1      3.266      1.807    1.000
+#> dim2      0.881      0.939    1.925
+#> dim3      0.621      0.788    2.294
+#> dim4      0.231      0.481    3.756
+#> dim5      0.000      0.018  100.614
 #> 
 #> Variance-decomposition proportions (row = coefficient, column = component):
 #>              dim1  dim2  dim3  dim4  dim5
@@ -162,6 +161,6 @@ bkw_diagnostics(mod)
 #> x3          0.029 0.002 0.809 0.141 0.018
 #> x4          0.015 0.935 0.043 0.005 0.002
 #> 
-#> >> Possible collinearity problems (condition index >= 10 and proportion >= 0.5 on >= 2 variables):
-#>   - dim5 (index = 100.61): x1, x2
+#> >> Possible collinearity problems (sqrt(CN) >= 10 and proportion >= 0.5 on >= 2 variables):
+#>   - dim5 (sqrt(CN) = 100.61): x1, x2
 ```

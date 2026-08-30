@@ -61,6 +61,6 @@ condition_number(mod, method = "WS")
 #> Eigenvalues of X_unit'X_unit (decreasing order):
 #> [1] 4.1168 0.4495 0.3411 0.0874 0.0050
 #> 
-#> Condition number (NC_WS) (eigenvalue scale): 816.9398
-#> Condition index (NC_WS) (classical, sqrt): 28.5822
+#> CN (NC_WS) (eigenvalue scale): 816.9398
+#> sqrt(CN) (NC_WS) (classical, singular-value scale): 28.5822
 ```

@@ -63,7 +63,7 @@
 <p><code>multiCollglm</code> diagnoses collinearity in generalized
 linear models (GLMs), generalizing the classical linear-regression
 diagnostics (condition number, Belsley-Kuh-Welsch decomposition, and the
-Redefined Variance Inflation Factor, RVIF) to any family and link
+Redefined Variance Inflation Factor, RVIF <span class="citation">(Salmerón et al. 2025)</span>) to any family and link
 function. All three are computed on the design matrix weighted by the
 IRLS weights at convergence and, by default, scaled to unit length by
 column (without centering).</p>
@@ -95,18 +95,18 @@ column (without centering).</p>
 <span><span class="co">#&gt; Eigenvalues of X_unit'X_unit (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 3.2659 0.8814 0.6208 0.2315 0.0003</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Condition number (eigenvalue scale): 10123.1410</span></span>
-<span><span class="co">#&gt; Condition index (classical, sqrt): 100.6138</span></span></code></pre></div>
+<span><span class="co">#&gt; CN (eigenvalue scale): 10123.1410</span></span>
+<span><span class="co">#&gt; sqrt(CN) (classical, singular-value scale): 100.6138</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/bkw_diagnostics.html">bkw_diagnostics</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Collinearity diagnostics (Belsley-Kuh-Welsch)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;      Eigenvalue Sing.value Condition_index</span></span>
-<span><span class="co">#&gt; dim1      3.266      1.807           1.000</span></span>
-<span><span class="co">#&gt; dim2      0.881      0.939           1.925</span></span>
-<span><span class="co">#&gt; dim3      0.621      0.788           2.294</span></span>
-<span><span class="co">#&gt; dim4      0.231      0.481           3.756</span></span>
-<span><span class="co">#&gt; dim5      0.000      0.018         100.614</span></span>
+<span><span class="co">#&gt;      Eigenvalue Sing.value sqrt(CN)</span></span>
+<span><span class="co">#&gt; dim1      3.266      1.807    1.000</span></span>
+<span><span class="co">#&gt; dim2      0.881      0.939    1.925</span></span>
+<span><span class="co">#&gt; dim3      0.621      0.788    2.294</span></span>
+<span><span class="co">#&gt; dim4      0.231      0.481    3.756</span></span>
+<span><span class="co">#&gt; dim5      0.000      0.018  100.614</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Variance-decomposition proportions (row = coefficient, column = component):</span></span>
 <span><span class="co">#&gt;              dim1  dim2  dim3  dim4  dim5</span></span>
@@ -116,8 +116,8 @@ column (without centering).</p>
 <span><span class="co">#&gt; x3          0.029 0.002 0.809 0.141 0.018</span></span>
 <span><span class="co">#&gt; x4          0.015 0.935 0.043 0.005 0.002</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; &gt;&gt; Possible collinearity problems (condition index &gt;= 10 and proportion &gt;= 0.5 on &gt;= 2 variables):</span></span>
-<span><span class="co">#&gt;   - dim5 (index = 100.61): x1, x2</span></span></code></pre></div>
+<span><span class="co">#&gt; &gt;&gt; Possible collinearity problems (sqrt(CN) &gt;= 10 and proportion &gt;= 0.5 on &gt;= 2 variables):</span></span>
+<span><span class="co">#&gt;   - dim5 (sqrt(CN) = 100.61): x1, x2</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rvif_diagnostics.html">rvif_diagnostics</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Redefined Variance Inflation Factor (RVIF)</span></span>
@@ -134,36 +134,41 @@ column (without centering).</p>
 </h2>
 <p><code><a href="../reference/condition_number.html">condition_number()</a></code> also accepts a <code>method</code>
 argument that switches between five published (or, for
-<code>"RAW"</code>, textbook-baseline) definitions of the condition
-number for a GLM:</p>
+<code>"RAW"</code>, textbook-baseline) definitions of CN for a GLM:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"RAW"</span><span class="op">)</span> <span class="co"># no transformation at all</span></span>
 <span><span class="co">#&gt; Eigenvalues of X'WX (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 25684.1167  4325.2941  3318.8684  1000.0895     3.3983</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Condition number (NC_RAW) (eigenvalue scale): 7557.9499</span></span>
-<span><span class="co">#&gt; Condition index (NC_RAW) (classical, sqrt): 86.9365</span></span>
+<span><span class="co">#&gt; CN (NC_RAW) (eigenvalue scale): 7557.9499</span></span>
+<span><span class="co">#&gt; sqrt(CN) (NC_RAW) (classical, singular-value scale): 86.9365</span></span>
+<span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MP"</span><span class="op">)</span>  <span class="co"># requires multiColl package</span></span>
+<span><span class="co">#&gt; Eigenvalues of X_lu'WX_lu (decreasing order):</span></span>
+<span><span class="co">#&gt; [1] 143.5803  18.7623  14.5861   5.0021   0.0197</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; CN (NC_MP) (eigenvalue scale): 7271.5771</span></span>
+<span><span class="co">#&gt; sqrt(CN) (NC_MP) (classical, singular-value scale): 85.2735</span></span>
 <span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"WS"</span><span class="op">)</span>  <span class="co"># same as the default above, explicitly labeled</span></span>
 <span><span class="co">#&gt; Eigenvalues of X_unit'X_unit (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 3.2659 0.8814 0.6208 0.2315 0.0003</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Condition number (NC_WS) (eigenvalue scale): 10123.1410</span></span>
-<span><span class="co">#&gt; Condition index (NC_WS) (classical, sqrt): 100.6138</span></span>
-<span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"OZ"</span><span class="op">)</span>  <span class="co"># centered and unit-scaled (Ozkale, 2019)</span></span>
+<span><span class="co">#&gt; CN (NC_WS) (eigenvalue scale): 10123.1410</span></span>
+<span><span class="co">#&gt; sqrt(CN) (NC_WS) (classical, singular-value scale): 100.6138</span></span>
+<span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"OZ"</span><span class="op">)</span>  <span class="co"># centered and unit-scaled [@ozkale2021]</span></span>
 <span><span class="co">#&gt; Eigenvalues of X_unit'X_unit (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 2.4718 0.8806 0.6473 0.0003</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Condition number (NC_OZ) (eigenvalue scale): 7201.4286</span></span>
-<span><span class="co">#&gt; Condition index (NC_OZ) (classical, sqrt): 84.8612</span></span>
-<span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MS"</span><span class="op">)</span>  <span class="co"># centered, unit-scaled, then refit (Marx and Smith, 1990)</span></span>
+<span><span class="co">#&gt; CN (NC_OZ) (eigenvalue scale): 7201.4286</span></span>
+<span><span class="co">#&gt; sqrt(CN) (NC_OZ) (classical, singular-value scale): 84.8612</span></span>
+<span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MS"</span><span class="op">)</span>  <span class="co"># centered, unit-scaled, then refit [@marx1990]</span></span>
 <span><span class="co">#&gt; Eigenvalues of X_cu'WX_cu (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 3816.0817   42.5254   18.0071   13.6069    0.0198</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Condition number (NC_MS) (eigenvalue scale): 192963.4257</span></span>
-<span><span class="co">#&gt; Condition index (NC_MS) (classical, sqrt): 439.2760</span></span></code></pre></div>
-<p><code>"MP"</code> (Mackinnon and Puterman, 1989) additionally
-requires the <code>multiColl</code> package. See
-<code><a href="../reference/condition_number.html">?condition_number</a></code> and the package’s <a href="https://github.com/cbgarciaugr/multiCollglm#condition-number-methods-method-argument" class="external-link">README</a>
+<span><span class="co">#&gt; CN (NC_MS) (eigenvalue scale): 192963.4257</span></span>
+<span><span class="co">#&gt; sqrt(CN) (NC_MS) (classical, singular-value scale): 439.2760</span></span></code></pre></div>
+<p><code>"MP"</code> <span class="citation">(Mackinnon and Puterman
+1989)</span> additionally requires the <code>multiColl</code> package.
+See <code><a href="../reference/condition_number.html">?condition_number</a></code> and the package’s <a href="https://github.com/cbgarciaugr/multiCollglm#condition-number-methods-method-argument" class="external-link">README</a>
 for the full description of each method, and for the caveats around
 <code>"MS"</code> (which can fail to converge for a no-intercept model)
 and <code>"OZ"</code> (which can legitimately return <code>Inf</code>
@@ -192,15 +197,15 @@ scaling), or a numeric vector of per-column divisors.</li>
 <span><span class="co">#&gt; Eigenvalues of X_unit'X_unit (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 649.9211 175.4071 123.5469  46.0607   0.0642</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Condition number (eigenvalue scale): 10123.1410</span></span>
-<span><span class="co">#&gt; Condition index (classical, sqrt): 100.6138</span></span></code></pre></div>
+<span><span class="co">#&gt; CN (eigenvalue scale): 10123.1410</span></span>
+<span><span class="co">#&gt; sqrt(CN) (classical, singular-value scale): 100.6138</span></span></code></pre></div>
 <p><strong>Do not use <code>center = TRUE</code></strong> on an
 intercept model unless you know what you are doing: for a canonical-link
 GLM, the IRLS-weighted design matrix satisfies
 <code>Xw %*% coef(mod) == 1</code> exactly, so centering the intercept
 column is guaranteed to drop the matrix’s rank by exactly one. This is
-precisely why Belsley, Kuh and Welsch (1980) recommend against centering
-for collinearity diagnostics; <code><a href="../reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> and
+precisely why Belsley, Kuh and Welsch <span class="citation">(1980)</span> recommend against centering for
+collinearity diagnostics; <code><a href="../reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> and
 <code><a href="../reference/rvif_diagnostics.html">rvif_diagnostics()</a></code> detect this and raise an informative
 error instead of returning <code>NaN</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -233,10 +238,11 @@ diagnostic was computed on.</p>
 <h2 id="bkw-rule-of-thumb">BKW rule of thumb<a class="anchor" aria-label="anchor" href="#bkw-rule-of-thumb"></a>
 </h2>
 <p><code><a href="../reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> flags as suspicious any dimension
-whose condition index is <code>&gt;= 10</code> and on which at least two
-coefficients have a variance proportion <code>&gt;= 0.5</code> (Belsley,
-Kuh and Welsch, 1980). Both thresholds are adjustable via
-<code>index_threshold</code> and <code>proportion_threshold</code>.</p>
+whose <code>sqrt(CN)</code> is <code>&gt;= 10</code> and on which at
+least two coefficients have a variance proportion <code>&gt;= 0.5</code>
+<span class="citation">(Belsley et al. 1980)</span>. Both thresholds are
+adjustable via <code>index_threshold</code> and
+<code>proportion_threshold</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="beyond-this-guide">Beyond this guide<a class="anchor" aria-label="anchor" href="#beyond-this-guide"></a>
@@ -248,18 +254,27 @@ diagnosed without applying the correct data transformation, together
 with a comparison against the results <code>multiCollglm</code>
 produces.</p>
 </div>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<div class="section level2 unnumbered">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<ul>
-<li>Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). <em>Regression
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-belsley1980" class="csl-entry">
+Belsley, D. A., E. Kuh, and R. E. Welsch. 1980. <em>Regression
 Diagnostics: Identifying Influential Data and Sources of
-Collinearity</em>. Wiley.</li>
-<li>Salmeron, R., Garcia, C.B. and Garcia, J. (2025). A redefined
-Variance Inflation Factor: overcoming the limitations of the Variance
-Inflation Factor. <em>Computational Economics</em>, 65, 337-363. <a href="https://doi.org/10.1007/s10614-024-10575-8" class="external-link uri">https://doi.org/10.1007/s10614-024-10575-8</a>
-</li>
-</ul>
+Collinearity</em>. Wiley.
+</div>
+<div id="ref-mackinnon1989" class="csl-entry">
+Mackinnon, M. J., and M. L. Puterman. 1989. <span>“Collinearity in
+Generalized Linear Models.”</span> <em>Communications in Statistics -
+Theory and Methods</em> 18 (9): 3463–72. <a href="https://doi.org/10.1080/03610928908830102" class="external-link">https://doi.org/10.1080/03610928908830102</a>.
+</div>
+<div id="ref-salmeron2025" class="csl-entry">
+Salmerón, R., C. B. García, and J. García. 2025. <span>“A Redefined
+Variance Inflation Factor: Overcoming the Limitations of the Variance
+Inflation Factor.”</span> <em>Computational Economics</em> 65: 337–63.
+<a href="https://doi.org/10.1007/s10614-024-10575-8" class="external-link">https://doi.org/10.1007/s10614-024-10575-8</a>.
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
