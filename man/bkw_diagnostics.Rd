@@ -60,8 +60,8 @@ it can also be \code{"lambda.min"} or \code{"lambda.1se"}.}
 
 \item{offset}{Optional offset for the refit.}
 
-\item{index_threshold}{Condition-index threshold used to flag a
-dimension as suspicious (default 10, i.e. a condition number of 100
+\item{index_threshold}{\code{sqrt(CN)} threshold used to flag a
+dimension as suspicious (default 10, i.e. a \code{CN} of 100
 before taking the square root).}
 
 \item{proportion_threshold}{Variance-proportion threshold used to
@@ -82,30 +82,31 @@ centering for collinearity diagnostics.}
 
 \item{scale}{Either \code{"unit"} (default; each column is scaled to
 Euclidean/L2 unit length, as originally proposed and required for the
-classical condition-index thresholds and the RVIF formula) or any
+classical \code{sqrt(CN)} thresholds and the RVIF formula) or any
 value accepted by \code{\link[=scale]{scale()}}'s own \code{scale} argument: \code{TRUE} for
 root-mean-square scaling, \code{FALSE} for no scaling, or a numeric vector
 of per-column divisors.}
 }
 \value{
 An object of class \code{multicollglm_bkw} with the eigenvalues,
-singular values, condition indices, the proportions matrix
-(\code{proportions}, one row per coefficient and one column per
-component), and the list of flagged dimensions (\code{flagged}).
+singular values, \code{sqrt(CN)} per component (\code{condition_index}), the
+proportions matrix (\code{proportions}, one row per coefficient and one
+column per component), and the list of flagged dimensions (\code{flagged}).
 }
 \description{
 Computes, over the design matrix weighted by the IRLS weights at
 convergence and, by default, scaled to unit length (without
-centering), the condition index per component and the Belsley, Kuh and Welsch (1980)
+centering), \code{sqrt(CN)} per component and the Belsley, Kuh and Welsch (1980)
 variance-decomposition proportion matrix, which identifies which
 coefficients are involved in each collinearity relationship.
 }
 \details{
-A dimension is flagged as problematic when its condition index is
+A dimension is flagged as problematic when its \code{sqrt(CN)} is
 greater than or equal to \code{index_threshold} and at least two
 coefficients have a variance proportion greater than or equal to
-\code{proportion_threshold} on that dimension. The default \code{index_threshold = 10} corresponds to a condition number of 100 on the eigenvalue
-(non-square-rooted) scale, since \code{condition_index = sqrt(condition_number)}.
+\code{proportion_threshold} on that dimension. The default \code{index_threshold = 10} corresponds to a \code{CN} of 100 on the eigenvalue
+(non-square-rooted) scale, since each component's \code{sqrt(CN)} is simply
+the square root of that component's \code{CN}.
 }
 \examples{
 set.seed(1)

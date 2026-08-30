@@ -2,29 +2,30 @@
 #'
 #' Computes, over the design matrix weighted by the IRLS weights at
 #' convergence and, by default, scaled to unit length (without
-#' centering), the condition index per component and the Belsley, Kuh and Welsch (1980)
+#' centering), `sqrt(CN)` per component and the Belsley, Kuh and Welsch (1980)
 #' variance-decomposition proportion matrix, which identifies which
 #' coefficients are involved in each collinearity relationship.
 #'
-#' A dimension is flagged as problematic when its condition index is
+#' A dimension is flagged as problematic when its `sqrt(CN)` is
 #' greater than or equal to `index_threshold` and at least two
 #' coefficients have a variance proportion greater than or equal to
 #' `proportion_threshold` on that dimension. The default `index_threshold
-#' = 10` corresponds to a condition number of 100 on the eigenvalue
-#' (non-square-rooted) scale, since `condition_index = sqrt(condition_number)`.
+#' = 10` corresponds to a `CN` of 100 on the eigenvalue
+#' (non-square-rooted) scale, since each component's `sqrt(CN)` is simply
+#' the square root of that component's `CN`.
 #'
 #' @inheritParams condition_number
-#' @param index_threshold Condition-index threshold used to flag a
-#'   dimension as suspicious (default 10, i.e. a condition number of 100
+#' @param index_threshold `sqrt(CN)` threshold used to flag a
+#'   dimension as suspicious (default 10, i.e. a `CN` of 100
 #'   before taking the square root).
 #' @param proportion_threshold Variance-proportion threshold used to
 #'   consider a coefficient involved in a suspicious dimension (default
 #'   0.5).
 #'
 #' @return An object of class `multicollglm_bkw` with the eigenvalues,
-#'   singular values, condition indices, the proportions matrix
-#'   (`proportions`, one row per coefficient and one column per
-#'   component), and the list of flagged dimensions (`flagged`).
+#'   singular values, `sqrt(CN)` per component (`condition_index`), the
+#'   proportions matrix (`proportions`, one row per coefficient and one
+#'   column per component), and the list of flagged dimensions (`flagged`).
 #'
 #' @examples
 #' set.seed(1)
@@ -140,7 +141,7 @@ print.multicollglm_bkw <- function(x, digits = 3, ...) {
   tab <- cbind(
     "Eigenvalue" = x$eigenvalues,
     "Sing.value" = x$singular_values,
-    "Condition_index" = x$condition_index
+    "sqrt(CN)" = x$condition_index
   )
   rownames(tab) <- paste0("dim", seq_len(nrow(tab)))
 
@@ -162,15 +163,15 @@ print.multicollglm_bkw <- function(x, digits = 3, ...) {
 
   if (length(x$flagged) > 0) {
     cat(sprintf(
-      "\n>> Possible collinearity problems (condition index >= %g and proportion >= %g on >= 2 variables):\n",
+      "\n>> Possible collinearity problems (sqrt(CN) >= %g and proportion >= %g on >= 2 variables):\n",
       x$index_threshold, x$proportion_threshold
     ))
     for (p in x$flagged) {
-      cat(sprintf("  - dim%d (index = %.2f): %s\n", p$dim, p$condition_index, paste(p$variables, collapse = ", ")))
+      cat(sprintf("  - dim%d (sqrt(CN) = %.2f): %s\n", p$dim, p$condition_index, paste(p$variables, collapse = ", ")))
     }
   } else {
     cat(sprintf(
-      "\nNo problems detected under the current thresholds (condition index >= %g, proportion >= %g).\n",
+      "\nNo problems detected under the current thresholds (sqrt(CN) >= %g, proportion >= %g).\n",
       x$index_threshold, x$proportion_threshold
     ))
   }

@@ -82,7 +82,7 @@ not \code{NULL} (see below).}
 
 \item{scale}{Either \code{"unit"} (default; each column is scaled to
 Euclidean/L2 unit length, as originally proposed and required for the
-classical condition-index thresholds and the RVIF formula) or any
+classical \code{sqrt(CN)} thresholds and the RVIF formula) or any
 value accepted by \code{\link[=scale]{scale()}}'s own \code{scale} argument: \code{TRUE} for
 root-mean-square scaling, \code{FALSE} for no scaling, or a numeric vector
 of per-column divisors. Ignored whenever \code{method} is not \code{NULL} (see
@@ -93,7 +93,7 @@ definitions; when supplied it overrides whatever \code{center}/\code{scale} were
 passed and labels the result accordingly (\code{NC_RAW}, \code{NC_MP}, \code{NC_MS},
 \code{NC_WS} or \code{NC_OZ}):
 \describe{
-\item{\code{"RAW"}}{No transformation at all. The condition number is
+\item{\code{"RAW"}}{No transformation at all. \code{CN} is
 computed directly on \eqn{X'WX} -- the IRLS-weighted design matrix
 (including the intercept column, if any), neither centered nor
 scaled (equivalent to \code{center = FALSE, scale = FALSE}). This is the
@@ -109,7 +109,7 @@ explanatory variables (including the intercept column) are first
 rescaled to unit Euclidean length with \code{\link[multiColl:lu]{multiColl::lu()}}, the GLM
 is \strong{refit} on those rescaled variables (with no further
 intercept, since the rescaled intercept column already plays that
-role), and the condition number is then computed on that refit's
+role), and \code{CN} is then computed on that refit's
 IRLS-weighted information matrix with \strong{no further
 transformation} (equivalent to \code{center = FALSE, scale = FALSE}
 applied to the refit). Refitting is mathematically redundant --
@@ -124,7 +124,7 @@ centered and rescaled to unit length) are first \strong{centered on
 their own mean and then rescaled to unit Euclidean length}, the
 GLM is \strong{refit} on those centered-and-scaled variables (with an
 ordinary intercept re-added whenever the original model had one),
-and the condition number is computed on that refit's IRLS-weighted
+and \code{CN} is computed on that refit's IRLS-weighted
 information matrix with \strong{no further transformation}. Unlike
 \code{"MP"}'s pure rescaling, centering here generally shifts the fitted
 values themselves (the refit intercept absorbs the new baseline),
@@ -169,19 +169,22 @@ as in earlier versions of this function.}
 An object of class \code{multicollglm_cn} with, among others, the
 eigenvalues used (of \eqn{X'WX} for \code{method = "RAW"}, of
 \eqn{X_{unit}'X_{unit}} for \code{"WS"}/\code{"OZ"}, or, for \code{method = "MP"}/\code{"MS"},
-of the respective refit's \eqn{X_{lu}'WX_{lu}} or \eqn{X_{cu}'WX_{cu}}), the
-condition number on the
-eigenvalue scale (\code{condition_number}), the classical condition index
-on the singular-value scale (\code{condition_index}, i.e.
+of the respective refit's \eqn{X_{lu}'WX_{lu}} or \eqn{X_{cu}'WX_{cu}}),
+\code{CN} itself, the ratio between the largest and smallest eigenvalue
+(\code{condition_number}), and its square root on the classical
+singular-value scale, \code{sqrt(CN)} (\code{condition_index}, i.e.
 \code{sqrt(condition_number)}), and, when \code{method} was supplied, \code{method}
 (\code{"RAW"}/\code{"MP"}/\code{"MS"}/\code{"WS"}/\code{"OZ"}) and \code{nc_label}
 (\code{"NC_RAW"}/\code{"NC_MP"}/\code{"NC_MS"}/\code{"NC_WS"}/\code{"NC_OZ"}).
 }
 \description{
-Computes the condition number over the design matrix weighted by the
-IRLS weights at convergence and, by default, scaled to unit length by
-column (without centering). This generalizes, to any GLM family and
+Computes the condition number (CN) over the design matrix weighted by
+the IRLS weights at convergence and, by default, scaled to unit length
+by column (without centering). This generalizes, to any GLM family and
 link function, the classical condition number of linear regression.
+Throughout this package, \code{CN} always refers to the ratio between the
+largest and smallest eigenvalue directly (no square root), and
+\code{sqrt(CN)} to its square root, on the classical singular-value scale.
 }
 \examples{
 set.seed(1)

@@ -1,9 +1,12 @@
 #' Condition number of a model (collinearity diagnostic)
 #'
-#' Computes the condition number over the design matrix weighted by the
-#' IRLS weights at convergence and, by default, scaled to unit length by
-#' column (without centering). This generalizes, to any GLM family and
+#' Computes the condition number (CN) over the design matrix weighted by
+#' the IRLS weights at convergence and, by default, scaled to unit length
+#' by column (without centering). This generalizes, to any GLM family and
 #' link function, the classical condition number of linear regression.
+#' Throughout this package, `CN` always refers to the ratio between the
+#' largest and smallest eigenvalue directly (no square root), and
+#' `sqrt(CN)` to its square root, on the classical singular-value scale.
 #'
 #' @param model A `glm`, `glmnet` or `cv.glmnet` object.
 #' @param center Either `FALSE` (default; no centering, as originally
@@ -29,7 +32,7 @@
 #'   (see below).
 #' @param scale Either `"unit"` (default; each column is scaled to
 #'   Euclidean/L2 unit length, as originally proposed and required for the
-#'   classical condition-index thresholds and the RVIF formula) or any
+#'   classical `sqrt(CN)` thresholds and the RVIF formula) or any
 #'   value accepted by [scale()]'s own `scale` argument: `TRUE` for
 #'   root-mean-square scaling, `FALSE` for no scaling, or a numeric vector
 #'   of per-column divisors. Ignored whenever `method` is not `NULL` (see
@@ -39,7 +42,7 @@
 #'   passed and labels the result accordingly (`NC_RAW`, `NC_MP`, `NC_MS`,
 #'   `NC_WS` or `NC_OZ`):
 #'   \describe{
-#'     \item{`"RAW"`}{No transformation at all. The condition number is
+#'     \item{`"RAW"`}{No transformation at all. `CN` is
 #'       computed directly on \eqn{X'WX} -- the IRLS-weighted design matrix
 #'       (including the intercept column, if any), neither centered nor
 #'       scaled (equivalent to `center = FALSE, scale = FALSE`). This is
@@ -55,7 +58,7 @@
 #'       rescaled to unit Euclidean length with [multiColl::lu()], the GLM
 #'       is **refit** on those rescaled variables (with no further
 #'       intercept, since the rescaled intercept column already plays that
-#'       role), and the condition number is then computed on that refit's
+#'       role), and `CN` is then computed on that refit's
 #'       IRLS-weighted information matrix with **no further
 #'       transformation** (equivalent to `center = FALSE, scale = FALSE`
 #'       applied to the refit). Refitting is mathematically redundant --
@@ -69,8 +72,8 @@
 #'       centered and rescaled to unit length) are first **centered on their
 #'       own mean and then rescaled to unit Euclidean length**, the GLM is
 #'       **refit** on those centered-and-scaled variables (with an ordinary
-#'       intercept re-added whenever the original model had one), and the
-#'       condition number is computed on that refit's IRLS-weighted
+#'       intercept re-added whenever the original model had one), and
+#'       `CN` is computed on that refit's IRLS-weighted
 #'       information matrix with **no further transformation**. Unlike
 #'       `"MP"`'s pure rescaling, centering here generally shifts the fitted
 #'       values themselves (the refit intercept absorbs the new baseline),
@@ -111,9 +114,9 @@
 #'   eigenvalues used (of \eqn{X'WX} for `method = "RAW"`, of
 #'   \eqn{X_{unit}'X_{unit}} for `"WS"`/`"OZ"`, or, for `method = "MP"`/`"MS"`,
 #'   of the respective refit's \eqn{X_{lu}'WX_{lu}} or \eqn{X_{cu}'WX_{cu}}),
-#'   the condition number on the
-#'   eigenvalue scale (`condition_number`), the classical condition index
-#'   on the singular-value scale (`condition_index`, i.e.
+#'   `CN` itself, the ratio between the largest and smallest eigenvalue
+#'   (`condition_number`), and its square root on the classical
+#'   singular-value scale, `sqrt(CN)` (`condition_index`, i.e.
 #'   `sqrt(condition_number)`), and, when `method` was supplied, `method`
 #'   (`"RAW"`/`"MP"`/`"MS"`/`"WS"`/`"OZ"`) and `nc_label`
 #'   (`"NC_RAW"`/`"NC_MP"`/`"NC_MS"`/`"NC_WS"`/`"NC_OZ"`).
@@ -209,12 +212,12 @@ condition_number.glm <- function(model, center = FALSE, scale = "unit", method =
   # 5.3's own Gamma example hits exactly this, with her reported smallest
   # eigenvalue, 4.0371e-17, already at floating-point noise level). Report
   # the mathematically correct Inf in either case instead of a nonsensical
-  # negative condition number, or a platform-dependent finite number that
+  # negative CN, or a platform-dependent finite number that
   # is really just noise, from dividing by a tiny floating-point value.
   if (min(ev_raw) <= 0) {
     warning(
       "The (weighted, transformed) design matrix is exactly rank-deficient (a zero or ",
-      "floating-point-negative eigenvalue was found); the condition number is mathematically ",
+      "floating-point-negative eigenvalue was found); CN is mathematically ",
       "infinite and is reported as Inf. Two known causes: (1) centering (center = TRUE) an ",
       "IRLS-weighted design matrix that still includes an intercept, for some family/link ",
       "combinations (method = \"OZ\" drops the intercept column to avoid this); and (2) the ",
@@ -307,7 +310,7 @@ print.multicollglm_cn <- function(x, digits = 4, ...) {
   }
 
   label <- if (is.null(x$nc_label)) "" else sprintf(" (%s)", x$nc_label)
-  cat(sprintf("\nCondition number%s (eigenvalue scale): %.*f\n", label, digits, x$condition_number))
-  cat(sprintf("Condition index%s (classical, sqrt): %.*f\n", label, digits, x$condition_index))
+  cat(sprintf("\nCN%s (eigenvalue scale): %.*f\n", label, digits, x$condition_number))
+  cat(sprintf("sqrt(CN)%s (classical, singular-value scale): %.*f\n", label, digits, x$condition_index))
   invisible(x)
 }

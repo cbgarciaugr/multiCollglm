@@ -3,7 +3,7 @@
 Collinearity diagnostics for generalized linear models (GLMs), on `glm`
 objects or on regularized models fitted with `glmnet` / `cv.glmnet`.
 
-All three diagnostics (`condition_number()`, `bkw_diagnostics()` and
+All three diagnostics (`condition_number()`, `bkw_diagnostics()` and 
 `rvif_diagnostics()`) are computed, generically for any family and link
 function, on the design matrix weighted by the IRLS weights at
 convergence (`mod$weights`). By default that matrix is scaled to unit
@@ -19,11 +19,9 @@ weights, the package identifies the active set of variables at the given
 can be computed.
 
 See `vignette("multiCollglm")` for a getting-started guide, and the
-[package website](https://cbgarciaugr.github.io/multiCollglm/) for
-worked reproductions of published works — using the four example datasets
-bundled with the package (`Nitrogen`, `Mine`, `LeeCancer`, `Plastic`; see
-`?Nitrogen` etc.) — where collinearity was diagnosed without the correct
-data transformation, compared against the results from this package.
+[package website](https://cbgarciaugr.github.io/multiCollglm/articles/index.html) for
+worked reproductions of published works, using four example datasets
+bundled with the package (`LeeCancer`, `Nitrogen`, `Mine`,`Plastic`) and a fifth (`Bodyfat` included in `TH.data` package). 
 
 ## Installation
 
@@ -46,7 +44,7 @@ rvif_diagnostics(mod)
 ```
 
 `condition_number(mod)`, with no `method` argument, reproduces exactly
-the calculation:
+the calculation proposed by Weissfeld and Sereika (1991):
 
 ```r
 X <- model.matrix(mod)
@@ -64,17 +62,16 @@ sqrt(CN)
 on that same `X_unit` matrix (with `ul = TRUE`, so it is re-scaled to
 unit length right before the RVIF is computed, a no-op under the default
 transformation) to get the Redefined Variance Inflation Factor of
-Salmeron, Garcia and Garcia (2025), which is able to detect both
+@salmeron2025, which is able to detect both
 essential and non-essential collinearity and decomposes the percentage
 of near collinearity attributable to each variable.
 
 ## Condition-number methods (`method` argument)
 
 `condition_number()` accepts a `method` argument that is a shortcut for
-five published (or, for `"RAW"`, textbook-baseline) definitions of the
-condition number for a GLM. Passing `method` overrides whatever
-`center`/`scale` you supplied and labels the result accordingly
-(`nc_label`: `NC_RAW`, `NC_MP`, `NC_MS`, `NC_WS` or `NC_OZ`):
+four published  definitions of the
+CN for a GLM (`nc_label`: `NC_MP`, `NC_MS`, `NC_WS` or `NC_OZ`). It is also included a method that does not include transformation (`NC_RAW`). Passing `method` overrides whatever
+`center`/`scale` you supplied and labels the result accordingly:
 
 ```r
 condition_number(mod, method = "RAW") # no transformation at all
@@ -84,13 +81,13 @@ condition_number(mod, method = "WS")  # Weissfeld and Sereika (1991) -- the defa
 condition_number(mod, method = "OZ")  # Ozkale (2019)
 ```
 
-| `method` | Transformation | Refits the GLM? |
+| `method` | Transformation | Comments|
 |---|---|---|
-| `"RAW"` | None at all: eigenvalues of $X'\hat{W}X$ directly (intercept included, no centering, no scaling). The plain baseline against which the other four can be judged — usually dominated by however differently-scaled the explanatory variables happen to be. | No |
-| `"MP"` | Mackinnon and Puterman (1989). The *original* explanatory variables (intercept included) are rescaled to unit Euclidean length with [`multiColl::lu()`](https://cran.r-project.org/package=multiColl) **before** fitting. | Yes (mathematically redundant — a GLM's IRLS weights at convergence are invariant to any linear rescaling of `X` — but done explicitly to mirror the original definition). |
-| `"MS"` | Marx and Smith (1990). The explanatory variables (excluding the intercept, if any) are **centered on their own mean and rescaled to unit Euclidean length before fitting**, with an ordinary intercept re-added if the original model had one. | Yes, and — unlike `"MP"` — this one is *not* redundant: centering shifts the fitted values themselves, so the refit is genuinely different from `model`. |
-| `"WS"` | Weissfeld and Sereika (1991), the package default. The GLM is fit on the original variables and the IRLS-weighted information matrix is scaled to unit column length *afterwards* (no centering). | No |
-| `"OZ"` | Ozkale (2019). Same as `"WS"`, but the IRLS-weighted design matrix is additionally **centered** before being scaled to unit length. If `model` has an intercept, its column is **dropped** before centering/scaling (every worked example in Ozkale 2019, Sec. 5, fits without an intercept term). | No |
+| `"RAW"` | None at all: eigenvalues of $X'\hat{W}X$ directly (intercept included, no centering, no scaling). The plain baseline against which the other four can be judged — usually dominated by however differently-scaled the explanatory variables happen to be. |  |
+| `"MP"` | @mackinnon1989. The *original* explanatory variables (intercept included) are rescaled to unit Euclidean length with [`multiColl::lu()`](https://cran.r-project.org/package=multiColl) **before** fitting. | A GLM's IRLS weights at convergence are invariant to any linear rescaling of `X` — but done explicitly to mirror the original definition). |
+| `"MS"` | @marx1990. The explanatory variables (excluding the intercept, if any) are **centered on their own mean and rescaled to unit Euclidean length before fitting**, with an ordinary intercept re-added if the original model had one. | Unlike `"MP"` centering shifts the fitted values themselves, so the refit is genuinely different from `model`. |
+| `"WS"` | @weissfeld1991, the package default. The GLM is fit on the original variables and the IRLS-weighted information matrix is scaled to unit column length *afterwards* (no centering). |  |
+| `"OZ"` | @ozkale2021. Same as `"WS"`, but the IRLS-weighted design matrix is additionally **centered** before being scaled to unit length. If `model` has an intercept, its column is **dropped** before centering/scaling (every worked example in Ozkale 2019, Sec. 5, fits without an intercept term). |  |
 
 A few things worth knowing before picking one:
 
@@ -98,25 +95,20 @@ A few things worth knowing before picking one:
   dependency); it errors with an informative message if it isn't
   installed.
 - **`"MS"` can fail to converge for a model with no intercept.**
-  Centering removes every column's mean, leaving nothing to absorb the
-  new baseline; for some family/link combinations (most notably Gamma
+  Centering removes every column's mean. For some family/link combinations (most notably Gamma
   with the inverse link, which needs strictly positive fitted values)
   the refit's IRLS iteration can diverge. When that happens you get an
-  informative error explaining why, rather than a bare `glm()` warning —
-  this is expected for that combination and is not a bug: Marx and Smith
-  (1990) developed the method for logistic regression models, which
+  informative error explaining why this is expected for that combination and is not a bug: @marx1990
+  developed the method for logistic regression models, which
   ordinarily do include an intercept. If you hit this, use `"WS"` or
   `"OZ"` for that particular model instead.
-- **Centering an IRLS-weighted design matrix that includes an
-  intercept can leave it exactly rank-deficient** for *some* family/link
-  combinations — not a general canonical-link fact, but a structural
-  identity of the Gamma family with its canonical (inverse) link
+- **Centering an IRLS-weighted design matrix that includes an intercept can leave it exactly rank-deficient** for *some* family/link
+  combinations (for example the Gamma family with its canonical (inverse) link
   specifically (`sqrt(w) * eta` is exactly 1 for every observation,
   regardless of whether an intercept is present). `"OZ"` sidesteps this
   for most families by dropping the intercept before centering, but for
   Gamma-inverse the singularity is structural either way and `NC_OZ` will
-  then legitimately come back as `Inf` with a warning. See `?condition_number`
-  for the full explanation, and the `Nitrogen` reproduction article on the
+  then legitimately come back as `Inf` with a warning. See [`Nitrogen` reproduction article]() on the
   package website for a worked example.
 - Leave `method = NULL` (the default) to keep using `center`/`scale`
   directly, exactly as in earlier versions of this function — see the
@@ -131,20 +123,18 @@ as base R's own [`scale()`](https://rdrr.io/r/base/scale.html):
 
 - `center`: `FALSE` (default), `TRUE` (subtract column means), or a
   numeric vector of per-column values to subtract.
-- `scale`: `"unit"` (default; Euclidean/L2 unit-length columns, the
-  transformation originally proposed), `TRUE` (root-mean-square scaling),
+- `scale`: `TRUE` (root-mean-square scaling),
   `FALSE` (no scaling), or a numeric vector of per-column divisors.
 
+In addition, `scale` accept also `"unit"`, for unit legth transformation:
 ```r
+condition_number(mod, scale="unit") # unit length transformation
 condition_number(mod, scale = TRUE) # root-mean-square scaling instead of unit length
 condition_number(mod, scale = FALSE) # no scaling at all
 ```
-
-`scale = TRUE` rescales every eigenvalue by the same factor
-(`nrow(X) - 1`) relative to the default `scale = "unit"`, so the
-condition number and condition index are unaffected; `scale = FALSE` or a
-custom numeric vector generally do change them, since the columns are no
-longer put on a comparable scale.
+scale = TRUE rescales every eigenvalue by the same factor (nrow(X) - 1) relative to the default scale = "unit", 
+so CN and sqrt(CN) are unaffected; scale = FALSE or a custom numeric vector generally do change them, 
+since the columns are no longer put on a comparable scale.
 
 **Do not use `center = TRUE`** with an intercept model unless you know
 what you are doing, for the same reason described above for `"OZ"`:
@@ -190,12 +180,13 @@ exactly on which sub-model the diagnostic was computed.
 
 ## BKW rule of thumb
 
-`bkw_diagnostics()` flags as suspicious any dimension whose condition
-index is `>= 10` and on which at least two coefficients have a variance
-proportion `>= 0.5` (Belsley, Kuh and Welsch, 1980). The condition index
+`bkw_diagnostics()` flags as suspicious any dimension whose `sqrt(CN)`
+is `>= 10` and on which at least two coefficients have a variance
+proportion `>= 0.5` (@belsley1980). `sqrt(CN)`
 is on the singular-value (square-rooted) scale, so this threshold of 10
-corresponds to a condition number of 100 on the eigenvalue scale used by
-`condition_number()` (`condition_index = sqrt(condition_number)`). Both
+corresponds to a `CN` of 100 on the eigenvalue scale used by
+`condition_number()` (`sqrt(CN)` is simply the square root of `CN`, i.e.
+`condition_index = sqrt(condition_number)`). Both
 thresholds are adjustable via `index_threshold` and
 `proportion_threshold`.
 
@@ -203,31 +194,10 @@ thresholds are adjustable via `index_threshold` and
 
 Four real datasets used throughout the package's reproduction articles
 ship with the package (`data(Nitrogen)`, `data(Mine)`, `data(LeeCancer)`,
-`data(Plastic)`; see each dataset's help page, e.g. `?LeeCancer`, for its
-variables and source). A fifth, `bodyfat`, is used in one article but not
+`data(Plastic)`. A fifth, `bodyfat`, is used  but not
 bundled here since it already ships in the
 [`TH.data`](https://cran.r-project.org/package=TH.data) package.
 
 ## References
 
-- Mackinnon, M.J. and Puterman, M.L. (1989). Collinearity in generalized
-  linear models. *Communications in Statistics - Theory and Methods*,
-  18(9), 3463-3472. <https://doi.org/10.1080/03610928908830102>
-- Marx, B.D. and Smith, E.P. (1990). Weighted multicollinearity in
-  logistic regression: diagnostics and biased estimation techniques with
-  an example from lake acidification. *Canadian Journal of Fisheries and
-  Aquatic Sciences*, 47(6), 1128-1135. <https://doi.org/10.1139/f90-131>
-- Weissfeld, L.A. and Sereika, S.M. (1991). A multicollinearity
-  diagnostic for generalized linear models. *Communications in
-  Statistics - Theory and Methods*, 20(4), 1183-1198.
-  <https://doi.org/10.1080/03610929108830558>
-- Ozkale, M.R. (2019). The red indicator and corrected VIFs in
-  generalized linear models. *Communications in Statistics - Simulation
-  and Computation*. <https://doi.org/10.1080/03610918.2019.1639740>
-- Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). *Regression
-  Diagnostics: Identifying Influential Data and Sources of
-  Collinearity*. Wiley.
-- Salmeron, R., Garcia, C.B. and Garcia, J. (2025). A redefined Variance
-  Inflation Factor: overcoming the limitations of the Variance Inflation
-  Factor. *Computational Economics*, 65, 337-363.
-  <https://doi.org/10.1007/s10614-024-10575-8>
+

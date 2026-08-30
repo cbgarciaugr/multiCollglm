@@ -5,6 +5,7 @@ description: >
   compares it against the result from multiCollglm, which applies the
   correct transformation (design matrix weighted by IRLS, scaled to unit
   length, without centering).
+bibliography: ../references.bib
 ---
 
 ```{r, include = FALSE}
@@ -32,7 +33,8 @@ How to use it:
    what transformation (or lack of one) was applied.
 5. Add the article to _pkgdown.yml (articles section) so it appears in
    the package website's menu.
-6. Delete this comment block before publishing.
+6. Add any new references you cite (with @key) to vignettes/references.bib.
+7. Delete this comment block before publishing.
 -->
 
 ## Context
@@ -62,7 +64,7 @@ summary(mod)
 
 [Explain what transformation (or lack of one) the original work applied:
 for example, classical VIF on the unweighted matrix, or data centered
-before computing the condition number.]
+before computing `CN`.]
 
 ```{r}
 # TODO: reproduce the calculation exactly as the original work did it.
@@ -109,12 +111,7 @@ applied correctly.]
 
 ## References
 
-- [Full citation of the original work, in APA/the format used by the
-  package.]
-- Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). *Regression
-  Diagnostics: Identifying Influential Data and Sources of
-  Collinearity*. Wiley.
-- Salmeron, R., Garcia, C.B. and Garcia, J. (2025). A redefined Variance
-  Inflation Factor: overcoming the limitations of the Variance Inflation
-  Factor. *Computational Economics*, 65, 337-363.
-  <https://doi.org/10.1007/s10614-024-10575-8>
+[Cite the original work here with its @key, e.g. `[-@author2024]`, and
+add its BibTeX entry to `vignettes/references.bib`.] The two references
+below are cited throughout this package's diagnostics [@belsley1980;
+@salmeron2025], and will render automatically here once cited above.

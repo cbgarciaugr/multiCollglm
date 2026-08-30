@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Introduction to multiCollglm}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -17,7 +18,7 @@ knitr::opts_chunk$set(
 `multiCollglm` diagnoses collinearity in generalized linear models (GLMs),
 generalizing the classical linear-regression diagnostics (condition
 number, Belsley-Kuh-Welsch decomposition, and the Redefined Variance
-Inflation Factor, RVIF) to any family and link function. All three are
+Inflation Factor, RVIF [@salmeron2025]) to any family and link function. All three are
 computed on the design matrix weighted by the IRLS weights at
 convergence and, by default, scaled to unit length by column (without
 centering).
@@ -62,16 +63,17 @@ rvif_diagnostics(mod)
 
 `condition_number()` also accepts a `method` argument that switches
 between five published (or, for `"RAW"`, textbook-baseline) definitions
-of the condition number for a GLM:
+of CN for a GLM:
 
 ```{r}
 condition_number(mod, method = "RAW") # no transformation at all
+condition_number(mod, method = "MP")  # requires multiColl package
 condition_number(mod, method = "WS")  # same as the default above, explicitly labeled
-condition_number(mod, method = "OZ")  # centered and unit-scaled (Ozkale, 2019)
-condition_number(mod, method = "MS")  # centered, unit-scaled, then refit (Marx and Smith, 1990)
+condition_number(mod, method = "OZ")  # centered and unit-scaled [@ozkale2021]
+condition_number(mod, method = "MS")  # centered, unit-scaled, then refit [@marx1990]
 ```
 
-`"MP"` (Mackinnon and Puterman, 1989) additionally requires the
+`"MP"` [@mackinnon1989] additionally requires the
 `multiColl` package. See `?condition_number` and the package's
 [README](https://github.com/cbgarciaugr/multiCollglm#condition-number-methods-method-argument)
 for the full description of each method, and for the caveats around
@@ -100,7 +102,7 @@ condition_number(mod, scale = TRUE) # root-mean-square scaling instead of unit l
 you are doing: for a canonical-link GLM, the IRLS-weighted design matrix
 satisfies `Xw %*% coef(mod) == 1` exactly, so centering the intercept
 column is guaranteed to drop the matrix's rank by exactly one. This is
-precisely why Belsley, Kuh and Welsch (1980) recommend against centering
+precisely why Belsley, Kuh and Welsch [-@belsley1980] recommend against centering
 for collinearity diagnostics; `bkw_diagnostics()` and `rvif_diagnostics()`
 detect this and raise an informative error instead of returning `NaN`.
 
@@ -131,9 +133,9 @@ exactly which sub-model the diagnostic was computed on.
 
 ## BKW rule of thumb
 
-`bkw_diagnostics()` flags as suspicious any dimension whose condition
-index is `>= 10` and on which at least two coefficients have a variance
-proportion `>= 0.5` (Belsley, Kuh and Welsch, 1980). Both thresholds are
+`bkw_diagnostics()` flags as suspicious any dimension whose `sqrt(CN)`
+is `>= 10` and on which at least two coefficients have a variance
+proportion `>= 0.5` [@belsley1980]. Both thresholds are
 adjustable via `index_threshold` and `proportion_threshold`.
 
 ## Beyond this guide
@@ -146,11 +148,3 @@ data transformation, together with a comparison against the results
 `multiCollglm` produces.
 
 ## References
-
-- Belsley, D.A., Kuh, E. and Welsch, R.E. (1980). *Regression
-  Diagnostics: Identifying Influential Data and Sources of
-  Collinearity*. Wiley.
-- Salmeron, R., Garcia, C.B. and Garcia, J. (2025). A redefined Variance
-  Inflation Factor: overcoming the limitations of the Variance Inflation
-  Factor. *Computational Economics*, 65, 337-363.
-  <https://doi.org/10.1007/s10614-024-10575-8>
