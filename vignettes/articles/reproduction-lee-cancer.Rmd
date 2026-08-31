@@ -74,6 +74,14 @@ knitr::kable(calc_table(mod1_leecancer), digits = 4)
 
 @lesaffre1993 used this example to compare the $CN$ proposed by @mackinnon1989 (329.95) with the one proposed by @weissfeld1991 (315.14) and also with the one obtained directly from design matrix $X$ with unit length transformation (190.78). Results obtained with `multiCollglm` match those reported in the original paper.
 
+This is in fact the very example @lesaffre1993 use (Sec. 6.1) to introduce their own `ml_collinearity()` criterion, comparing `sqrt(CN)` of the original `X` against `sqrt(CN)` of the Mackinnon-Puterman information matrix:
+
+```{r}
+ml_collinearity(mod1_leecancer)
+```
+
+`multiCollglm` reproduces both of their reported values exactly (`sqrt(CN)_X = 190.78`, `sqrt(CN)_W = 329.95`), and their own conclusion for this model: the ratio (`r round(ml_collinearity(mod1_leecancer)$ratio_wx, 2)`) stays well below the `ratio_threshold = 5` cutoff, so this is a case of ordinary collinearity in `X` (`sqrt(CN)_X = 190.78 > 30`), not ML-collinearity.
+
 ### Model 2: Ozkale and Arican [-@ozkalearican2016] / Ozkale [-@ozkale2021] -- CELL, SMEAR, INFIL, BLAST, TEMP (no LI)
 
 ```{r}

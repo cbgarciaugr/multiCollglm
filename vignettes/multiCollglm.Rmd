@@ -138,6 +138,28 @@ is `>= 10` and on which at least two coefficients have a variance
 proportion `>= 0.5` [@belsley1980]. Both thresholds are
 adjustable via `index_threshold` and `proportion_threshold`.
 
+## ML-collinearity
+
+`ml_collinearity()` implements the diagnostic of Lesaffre and Marx
+[-@lesaffre1993], which compares `sqrt(CN)` of the *original* design
+matrix (via `multiColl::CNs()`) against `sqrt(CN)` of the IRLS-weighted
+information matrix under `method = "MP"`, to distinguish ordinary
+collinearity among the explanatory variables from *ML-collinearity*:
+ill-conditioning that instead arises from the combination of the
+response, the fitted coefficients and the link function.
+
+```{r}
+ml_collinearity(mod)
+```
+
+A model is flagged with `ml_collinearity = TRUE` only when both the
+ratio and `sqrt(CN)` of the information matrix exceed their thresholds
+(5 and 30 by default); see `?ml_collinearity` and the package's
+[README](https://github.com/cbgarciaugr/multiCollglm#ml-collinearity-lesaffre-and-marx-1993)
+for the full rationale, and the [`LeeCancer` reproduction
+article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html)
+for Lesaffre and Marx's own worked example, reproduced exactly.
+
 ## Beyond this guide
 
 This vignette covers the package's basic usage. The [package

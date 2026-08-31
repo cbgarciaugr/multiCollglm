@@ -17,9 +17,14 @@ Description: Tools to diagnose collinearity in generalized linear models
     'method' argument: no transformation at all ('"RAW"'), Mackinnon and
     Puterman (1989) ('"MP"'), Marx and Smith (1990) ('"MS"'), Weissfeld
     and Sereika (1991) ('"WS"', the package default), and Ozkale (2019)
-    ('"OZ"'). Provides methods for 'glm' objects and for regularized
-    models fitted with 'glmnet' or 'cv.glmnet', which are internally refit
-    as a 'glm' on the active set of variables selected at the given lambda.
+    ('"OZ"'). ml_collinearity() implements the diagnostic of Lesaffre and
+    Marx (1993), comparing the condition number of the original design
+    matrix (via 'multiColl''s CNs()) against Mackinnon and Puterman's
+    (1989) condition number of the information matrix to distinguish
+    ordinary collinearity from ML-collinearity. Provides methods for
+    'glm' objects and for regularized models fitted with 'glmnet' or
+    'cv.glmnet', which are internally refit as a 'glm' on the active set
+    of variables selected at the given lambda.
     Ships four example datasets (Nitrogen, Mine, LeeCancer, Plastic) used
     by the package's reproduction articles, which reproduce and compare
     against condition numbers reported in the published literature.
