@@ -43,7 +43,7 @@
 #'   `NC_WS` or `NC_OZ`):
 #'   \describe{
 #'     \item{`"RAW"`}{No transformation at all. `CN` is
-#'       computed directly on \eqn{X'WX} -- the IRLS-weighted design matrix
+#'       computed directly on $X'WX$ -- the IRLS-weighted design matrix
 #'       (including the intercept column, if any), neither centered nor
 #'       scaled (equivalent to `center = FALSE, scale = FALSE`). This is
 #'       the "original, uncentered and unscaled data" baseline against
@@ -105,16 +105,15 @@
 #'       rather than the platform-dependent large-but-nominally-finite
 #'       number her software happened to print.}
 #'   }
-#'   Leave as `NULL` (the default) to use `center`/`scale` directly, exactly
-#'   as in earlier versions of this function.
+#'   Leave as `NULL` (the default) to use `center`/`scale` directly.
 #' @param ... Additional arguments passed to the methods (see `x`, `y`,
 #'   `family`, `s`, `weights`, `offset` for `glmnet`/`cv.glmnet`).
 #'
 #' @return An object of class `multicollglm_cn` with, among others, the
-#'   eigenvalues used (of \eqn{X'WX} for `method = "RAW"`, of
-#'   \eqn{(X'WX)_{ul}} for `"WS"`, of \eqn{(X'WX)_{ulc}} for `"OZ"`, or, for
-#'   `method = "MP"`/`"MS"`, of the respective refit's \eqn{X_{ul}'WX_{ul}}
-#'   or \eqn{X_{ulc}'WX_{ulc}}),
+#'   eigenvalues used (of $X'WX$ for `method = "RAW"`, of
+#'   $(X'WX)_{ul}$ for `"WS"`, of $(X'WX)_{ulc}$ for `"OZ"`, or, for
+#'   `method = "MP"`/`"MS"`, of the respective refit's $X_{ul}'WX_{ul}$
+#'   or $X_{ulc}'WX_{ulc}$),
 #'   `CN` itself, the ratio between the largest and smallest eigenvalue
 #'   (`condition_number`), and its square root on the classical
 #'   singular-value scale, `sqrt(CN)` (`condition_index`, i.e.

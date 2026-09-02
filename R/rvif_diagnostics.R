@@ -9,7 +9,11 @@
 #' that matrix to Euclidean unit length right before computing the RVIF,
 #' whatever `center`/`scale` were used to build it (a matrix that is
 #' already unit length, the default, is left unchanged by this step).
-#' Unlike the classical VIF, the RVIF is able to
+#' As a consequence, **`scale` has no effect on the RVIF result**: any
+#' value other than `"unit"` is silently overridden by that final
+#' re-scaling, so a warning is issued whenever `scale != "unit"` is
+#' requested (`center` is unaffected and still changes the result, since
+#' `rvifs()` does not undo it). Unlike the classical VIF, the RVIF is able to
 #' detect both essential collinearity (near-linear relationships among
 #' the regressors) and non-essential collinearity (near-linear
 #' relationships between the intercept and one or more regressors), and
@@ -17,6 +21,14 @@
 #' collinearity it is responsible for.
 #'
 #' @inheritParams condition_number
+#' @param scale Either `"unit"` (default) or any value accepted by
+#'   [scale()]'s own `scale` argument (`TRUE`, `FALSE`, or a numeric
+#'   vector of per-column divisors) -- but note that, unlike in
+#'   [condition_number()] and [bkw_diagnostics()], **this has no effect
+#'   on the RVIF result**: [rvif::rvifs()] is always called with `ul =
+#'   TRUE`, which re-scales the design matrix to Euclidean unit length
+#'   right before computing the RVIF regardless of `scale`. Requesting
+#'   anything other than `"unit"` issues a warning for this reason.
 #' @param tol Tolerance used by [rvif::rvifs()] to decide whether the
 #'   system is computationally singular (default `1e-30`).
 #'
@@ -47,11 +59,21 @@ rvif_diagnostics <- function(model, ...) {
 
 #' @export
 rvif_diagnostics.glm <- function(model, center = FALSE, scale = "unit", tol = 1e-30, ...) {
+  if (!identical(scale, "unit")) {
+    warning(
+      "'scale' has no effect on rvif_diagnostics(): rvif::rvifs() is always called with ",
+      "ul = TRUE, which re-scales the design matrix to Euclidean unit length right before ",
+      "computing the RVIF, overriding whatever 'scale' was requested here. Only 'center' ",
+      "changes the result. Use scale = \"unit\" (the default) to avoid this warning.",
+      call. = FALSE
+    )
+  }
+
   core <- .build_design(model, center = center, scale = scale)
 
   # ul = TRUE: rvifs() re-scales core$X_unit to Euclidean unit length right
   # before computing the RVIF, which is a no-op when scale = "unit" (the
-  # default) and the correct behaviour for any other center/scale choice.
+  # default) and overrides any other 'scale' choice (see the warning above).
   tab <- rvif::rvifs(core$X_unit, ul = TRUE, intercept = core$has_intercept, tol = tol)
   if (is.null(tab)) {
     stop(

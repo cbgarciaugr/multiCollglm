@@ -62,30 +62,22 @@ it can also be \code{"lambda.min"} or \code{"lambda.1se"}.}
 proposed and required to detect non-essential collinearity involving
 the intercept) or any value accepted by \code{\link[=scale]{scale()}}'s own \code{center}
 argument: \code{TRUE} to center each column on its mean, or a numeric
-vector of per-column values to subtract. Centering an IRLS-weighted
-design matrix that includes an intercept can leave it exactly
-rank-deficient for \emph{some} family/link combinations, but this is not a
-general canonical-link fact: it happens whenever \code{sqrt(w) * linear.predictors} is constant across all observations, which is a
-structural identity of the \strong{Gamma family with its canonical (inverse)
-link} (\code{sqrt(w) = mu}, \code{eta = 1/mu}, so their product is exactly 1
-for every observation) -- and, notably for Gamma with that link, this
-holds \strong{regardless of whether an intercept is present}, so dropping
-the intercept does not avoid it there (see \code{method = "OZ"} below). It
-does \emph{not} occur in general for other canonical links such as the
-logit (binomial can be centered with an intercept without issue).
-When it does occur, \code{\link[=bkw_diagnostics]{bkw_diagnostics()}} and \code{\link[=rvif_diagnostics]{rvif_diagnostics()}}
-report it as an error rather than silent \code{NaN}s; this is the classical
-reason Belsley, Kuh and Welsch advise against centering for
-collinearity diagnostics. Ignored whenever \code{method} is not \code{NULL}
-(see below).}
+vector of per-column values to subtract. For a canonical-link GLM
+with an intercept, centering the IRLS-weighted design matrix is
+mathematically guaranteed to drop its rank by exactly one (since
+\code{sqrt(w) * eta} is then constant), which \code{\link[=bkw_diagnostics]{bkw_diagnostics()}} and
+\code{\link[=rvif_diagnostics]{rvif_diagnostics()}} report as an error rather than silent \code{NaN}s;
+this is the classical reason Belsley, Kuh and Welsch advise against
+centering for collinearity diagnostics.}
 
-\item{scale}{Either \code{"unit"} (default; each column is scaled to
-Euclidean/L2 unit length, as originally proposed and required for the
-classical \code{sqrt(CN)} thresholds and the RVIF formula) or any
-value accepted by \code{\link[=scale]{scale()}}'s own \code{scale} argument: \code{TRUE} for
-root-mean-square scaling, \code{FALSE} for no scaling, or a numeric vector
-of per-column divisors. Ignored whenever \code{method} is not \code{NULL} (see
-below).}
+\item{scale}{Either \code{"unit"} (default) or any value accepted by
+\code{\link[=scale]{scale()}}'s own \code{scale} argument (\code{TRUE}, \code{FALSE}, or a numeric
+vector of per-column divisors) -- but note that, unlike in
+\code{\link[=condition_number]{condition_number()}} and \code{\link[=bkw_diagnostics]{bkw_diagnostics()}}, \strong{this has no effect
+on the RVIF result}: \code{\link[rvif:rvifs]{rvif::rvifs()}} is always called with \code{ul =
+TRUE}, which re-scales the design matrix to Euclidean unit length
+right before computing the RVIF regardless of \code{scale}. Requesting
+anything other than \code{"unit"} issues a warning for this reason.}
 
 \item{tol}{Tolerance used by \code{\link[rvif:rvifs]{rvif::rvifs()}} to decide whether the
 system is computationally singular (default \code{1e-30}).}
@@ -106,7 +98,11 @@ length by column (without centering); see \code{center}/\code{scale} below.
 that matrix to Euclidean unit length right before computing the RVIF,
 whatever \code{center}/\code{scale} were used to build it (a matrix that is
 already unit length, the default, is left unchanged by this step).
-Unlike the classical VIF, the RVIF is able to
+As a consequence, \strong{\code{scale} has no effect on the RVIF result}: any
+value other than \code{"unit"} is silently overridden by that final
+re-scaling, so a warning is issued whenever \code{scale != "unit"} is
+requested (\code{center} is unaffected and still changes the result, since
+\code{rvifs()} does not undo it). Unlike the classical VIF, the RVIF is able to
 detect both essential collinearity (near-linear relationships among
 the regressors) and non-essential collinearity (near-linear
 relationships between the intercept and one or more regressors), and

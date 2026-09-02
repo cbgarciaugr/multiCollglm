@@ -70,6 +70,26 @@ test_that("rvif_diagnostics.glm matches a direct call to rvif::rvifs() on X_unit
   expect_true(all(res$table[c("x1", "x2"), "%"] > res$table["x3", "%"]))
 })
 
+test_that("rvif_diagnostics.glm warns when scale != \"unit\" and still returns the same result as scale = \"unit\"", {
+  skip_if_not_installed("rvif")
+
+  d <- simulated_data()
+  mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
+
+  # scale has no effect on the RVIF: rvifs(ul = TRUE) re-normalizes to unit
+  # length regardless, so scale = TRUE/FALSE/a numeric vector must all warn
+  # and, once the warning is suppressed, must give the exact same result as
+  # scale = "unit" (only center actually changes the RVIF).
+  expect_warning(res_rms <- rvif_diagnostics(mod, scale = TRUE), "has no effect")
+  expect_warning(res_false <- rvif_diagnostics(mod, scale = FALSE), "has no effect")
+  expect_warning(res_num <- rvif_diagnostics(mod, scale = c(2, 3, 4, 5, 6)), "has no effect")
+  res_unit <- rvif_diagnostics(mod) # default: scale = "unit", no warning
+
+  expect_equal(res_rms$table, res_unit$table)
+  expect_equal(res_false$table, res_unit$table)
+  expect_equal(res_num$table, res_unit$table)
+})
+
 test_that("scale = TRUE (root-mean-square) preserves the condition number ratio but rescales eigenvalues", {
   d <- simulated_data()
   mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = d)
