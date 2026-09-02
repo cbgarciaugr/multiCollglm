@@ -112,8 +112,9 @@
 #'
 #' @return An object of class `multicollglm_cn` with, among others, the
 #'   eigenvalues used (of \eqn{X'WX} for `method = "RAW"`, of
-#'   \eqn{X_{unit}'X_{unit}} for `"WS"`/`"OZ"`, or, for `method = "MP"`/`"MS"`,
-#'   of the respective refit's \eqn{X_{lu}'WX_{lu}} or \eqn{X_{cu}'WX_{cu}}),
+#'   \eqn{(X'WX)_{ul}} for `"WS"`, of \eqn{(X'WX)_{ulc}} for `"OZ"`, or, for
+#'   `method = "MP"`/`"MS"`, of the respective refit's \eqn{X_{ul}'WX_{ul}}
+#'   or \eqn{X_{ulc}'WX_{ulc}}),
 #'   `CN` itself, the ratio between the largest and smallest eigenvalue
 #'   (`condition_number`), and its square root on the classical
 #'   singular-value scale, `sqrt(CN)` (`condition_index`, i.e.
@@ -292,9 +293,11 @@ print.multicollglm_cn <- function(x, digits = 4, ...) {
   mat_label <- switch(
     if (is.null(x$method)) "" else x$method,
     "RAW" = "X'WX",
-    "MP"  = "X_lu'WX_lu",
-    "MS"  = "X_cu'WX_cu",
-    "X_unit'X_unit" # default for "WS", "OZ" and method = NULL
+    "MP"  = "X_ul'WX_ul",
+    "MS"  = "X_ulc'WX_ulc",
+    "WS"  = "(X'WX)_ul",
+    "OZ"  = "(X'WX)_ulc",
+    "X_unit'X_unit" # default for method = NULL (center/scale passed directly)
   )
   cat(sprintf("Eigenvalues of %s (decreasing order):\n", mat_label))
   print(round(x$eigenvalues, digits))

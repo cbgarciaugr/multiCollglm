@@ -168,8 +168,9 @@ as in earlier versions of this function.}
 \value{
 An object of class \code{multicollglm_cn} with, among others, the
 eigenvalues used (of \eqn{X'WX} for \code{method = "RAW"}, of
-\eqn{X_{unit}'X_{unit}} for \code{"WS"}/\code{"OZ"}, or, for \code{method = "MP"}/\code{"MS"},
-of the respective refit's \eqn{X_{lu}'WX_{lu}} or \eqn{X_{cu}'WX_{cu}}),
+\eqn{(X'WX)_{ul}} for \code{"WS"}, of \eqn{(X'WX)_{ulc}} for \code{"OZ"}, or, for
+\code{method = "MP"}/\code{"MS"}, of the respective refit's \eqn{X_{ul}'WX_{ul}}
+or \eqn{X_{ulc}'WX_{ulc}}),
 \code{CN} itself, the ratio between the largest and smallest eigenvalue
 (\code{condition_number}), and its square root on the classical
 singular-value scale, \code{sqrt(CN)} (\code{condition_index}, i.e.

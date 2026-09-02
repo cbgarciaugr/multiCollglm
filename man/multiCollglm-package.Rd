@@ -12,7 +12,10 @@ models, all computed over the design matrix weighted by the IRLS
 weights at convergence and scaled to unit length (without centering).
 Works directly on \code{glm} objects, and on \code{glmnet}/\code{cv.glmnet} objects by
 internally refitting a \code{glm} on the active set of variables at the
-given lambda.
+given lambda. \code{\link[=ml_collinearity]{ml_collinearity()}} adds the complementary diagnostic of
+Lesaffre and Marx (1993), comparing the condition number of the
+original design matrix against that of the IRLS-weighted information
+matrix to distinguish ordinary collinearity from ML-collinearity.
 }
 \author{
 \strong{Maintainer}: Catalina Garcia Garcia \email{cbgarcia@go.ugr.es}
