@@ -28,7 +28,7 @@ Description: Tools to diagnose collinearity in generalized linear models
     Ships four example datasets (Nitrogen, Mine, LeeCancer, Plastic) used
     by the package's reproduction articles, which reproduce and compare
     against condition numbers reported in the published literature.
-License: GPL (>= 3)
+License: GPL (>= 3) + file LICENSE
 URL: https://github.com/cbgarciaugr/multiCollglm, https://cbgarciaugr.github.io/multiCollglm/
 BugReports: https://github.com/cbgarciaugr/multiCollglm/issues
 Depends:
