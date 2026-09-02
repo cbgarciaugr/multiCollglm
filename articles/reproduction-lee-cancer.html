@@ -174,16 +174,16 @@ Marx (1993)</span> use (Sec. 6.1) to introduce their own
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ml_collinearity.html">ml_collinearity</a></span><span class="op">(</span><span class="va">mod1_leecancer</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ML-collinearity diagnostic (Lesaffre and Marx, 1993)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 11.7696</span></span>
+<span><span class="co">#&gt; sqrt(CN) of X (original design matrix, multiColl::CNs(X), with intercept): 190.7765</span></span>
 <span><span class="co">#&gt; sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542</span></span>
-<span><span class="co">#&gt; ratio (sqrt(CN)_W / sqrt(CN)_X): 28.0345</span></span>
+<span><span class="co">#&gt; ratio (sqrt(CN)_W / sqrt(CN)_X): 1.7295</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Collinearity in X (sqrt(CN)_X &gt; 30): no</span></span>
-<span><span class="co">#&gt; ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): YES</span></span></code></pre></div>
+<span><span class="co">#&gt; Collinearity in X (sqrt(CN)_X &gt; 30): YES</span></span>
+<span><span class="co">#&gt; ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): no</span></span></code></pre></div>
 <p><code>multiCollglm</code> reproduces both of their reported values
 exactly (<code>sqrt(CN)_X = 190.78</code>,
 <code>sqrt(CN)_W = 329.95</code>), and their own conclusion for this
-model: the ratio (28.03) stays well below the
+model: the ratio (1.73) stays well below the
 <code>ratio_threshold = 5</code> cutoff, so this is a case of ordinary
 collinearity in <code>X</code>
 (<code>sqrt(CN)_X = 190.78 &gt; 30</code>), not ML-collinearity.</p>
@@ -210,7 +210,7 @@ TEMP (no LI)<a class="anchor" aria-label="anchor" href="#model-2-ozkale-and-aric
 <tr class="odd">
 <td align="left">RAW</td>
 <td align="left">NC_RAW</td>
-<td align="right">219838806.31</td>
+<td align="right">219838806.17</td>
 <td align="right">14826.9621</td>
 </tr>
 <tr class="even">
@@ -335,8 +335,8 @@ she reports. This value does not match any of
 <tr class="odd">
 <td align="left">RAW</td>
 <td align="left">NC_RAW</td>
-<td align="right">395524494.29</td>
-<td align="right">19887.7976</td>
+<td align="right">395524499.52</td>
+<td align="right">19887.7978</td>
 </tr>
 <tr class="even">
 <td align="left">MP</td>
@@ -382,7 +382,7 @@ she reports. This value does not match any of
 <td align="left">RAW</td>
 <td align="left">NC_RAW</td>
 <td align="right">2.900940e+08</td>
-<td align="right">17032.1463</td>
+<td align="right">17032.1464</td>
 </tr>
 <tr class="even">
 <td align="left">MP</td>

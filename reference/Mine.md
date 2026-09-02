@@ -14,14 +14,7 @@ Mine
 
 ## Format
 
-An object of class `data.frame` with 44 rows and 5 columns.
-
-## Source
-
-Myers, R.H. (1990). *Classical and Modern Regression with Applications*
-(2nd ed.). Duxbury Press. Reproduced (correctly) by Marx, B.D. (1992).
-
-## Details
+A data frame with 44 rows and 5 columns:
 
 - y:
 
@@ -42,6 +35,13 @@ Myers, R.H. (1990). *Classical and Modern Regression with Applications*
 - x4:
 
   Time since the mine was opened.
+
+## Source
+
+Myers, R.H. (1990). *Classical and Modern Regression with Applications*
+(2nd ed.). Duxbury Press. Reproduced (correctly) by Marx, B.D. (1992).
+
+## Details
 
 Two transcription errors present in some circulating copies of this
 dataset – row 30 with `y = 22` instead of `y = 2`, and row 36 with

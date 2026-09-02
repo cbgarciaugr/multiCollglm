@@ -100,8 +100,9 @@ ml_collinearity(
 ## Value
 
 An object of class `multicollglm_mlcoll` with `kappa_x` (`sqrt(CN)` of
-the original design matrix `X`, via `multiColl::CNs(X)[1]`), `kappa_w`
-(`sqrt(CN)` of the MacKinnon-Puterman information matrix, i.e.
+the original design matrix `X`, via `multiColl::CNs(X)`, the "with
+intercept" condition number), `kappa_w` (`sqrt(CN)` of the
+MacKinnon-Puterman information matrix, i.e.
 `condition_number(model, method = "MP")$condition_index`), `ratio_wx`
 (`kappa_w / kappa_x`), the two thresholds used (`ratio_threshold`,
 `kappa_threshold`), and the logical flags `collinearity_x`
@@ -111,13 +112,23 @@ the original design matrix `X`, via `multiColl::CNs(X)[1]`), `kappa_w`
 ## Details
 
 `ml_collinearity()` computes `sqrt(CN)` of `X` with
-[`multiColl::CNs()`](https://rdrr.io/pkg/multiColl/man/CNs.html)
-(`CNs(X)[1]`, following Lesaffre and Marx, 1993, Sec. 4.2's own
-recommendation) and `sqrt(CN)` of the MacKinnon-Puterman information
-matrix with `condition_number(model, method = "MP")`, then forms their
-ratio, `ratio_wx = sqrt(CN)_W / sqrt(CN)_X`. Following Lesaffre and Marx
-(1993, Sec. 4.2), a model is flagged with ML-collinearity only when
-**both** `ratio_wx > ratio_threshold` (default 5) **and**
+[`multiColl::CNs()`](https://rdrr.io/pkg/multiColl/man/CNs.html),
+following Lesaffre and Marx (1993, Sec. 4.2)'s own recommendation.
+`CNs(X)` (with `X` including the intercept column) returns a list of two
+elements, the condition number without and with the intercept (in that
+order; when `X` has only one regressor besides the intercept, it instead
+returns a bare numeric scalar, the with-intercept value, since the
+without-intercept quantity is undefined for a single column). Since
+Lesaffre and Marx's `kappa_X` is explicitly computed on `X` **with** the
+constant vector standardized to unit length along with the rest, this
+uses the with-intercept value, which reproduces Lesaffre and Marx's
+(1993) own published `kappa_X = 190.78` exactly for their Lee
+cancer-remission example, while the without-intercept value does not.
+`sqrt(CN)` of the MacKinnon-Puterman information matrix is computed with
+`condition_number(model, method = "MP")`, and the two are combined into
+their ratio, `ratio_wx = sqrt(CN)_W / sqrt(CN)_X`. Following Lesaffre
+and Marx (1993, Sec. 4.2), a model is flagged with ML-collinearity only
+when **both** `ratio_wx > ratio_threshold` (default 5) **and**
 `sqrt(CN)_W > kappa_threshold` (default 30): the ratio alone is not
 sufficient, since a high ratio with a small `sqrt(CN)_W` does not
 indicate an ill-conditioned information matrix to begin with.

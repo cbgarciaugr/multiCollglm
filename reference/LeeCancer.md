@@ -18,15 +18,7 @@ LeeCancer
 
 ## Format
 
-An object of class `data.frame` with 27 rows and 7 columns.
-
-## Source
-
-Lee, E.T. (1974). A computer program for linear logistic regression
-analysis. *Computer Programs in Biomedicine*, 4(2), 80-92.
-[doi:10.1016/0010-468X(74)90011-7](https://doi.org/10.1016/0010-468X%2874%2990011-7)
-
-## Details
+A data frame with 27 rows and 7 columns:
 
 - y:
 
@@ -58,6 +50,12 @@ analysis. *Computer Programs in Biomedicine*, 4(2), 80-92.
   TEMP, highest body temperature (recorded on a /100 scale, as in the
   original source; some reproduction articles multiply it back by 100 to
   match a paper's own units).
+
+## Source
+
+Lee, E.T. (1974). A computer program for linear logistic regression
+analysis. *Computer Programs in Biomedicine*, 4(2), 80-92.
+[doi:10.1016/0010-468X(74)90011-7](https://doi.org/10.1016/0010-468X%2874%2990011-7)
 
 ## Examples
 

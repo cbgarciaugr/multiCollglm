@@ -140,20 +140,19 @@ argument: <code>TRUE</code> to center each column on its mean, or a numeric
 vector of per-column values to subtract. Centering an IRLS-weighted
 design matrix that includes an intercept can leave it exactly
 rank-deficient for <em>some</em> family/link combinations, but this is not a
-general canonical-link fact: it happens whenever <code>sqrt(w) *
-linear.predictors</code> is constant across all observations, which is a
-structural identity of the <strong>Gamma family with its canonical
-(inverse) link</strong> (<code>sqrt(w) = mu</code>, <code>eta = 1/mu</code>, so their product is
-exactly 1 for every observation) – and, notably for Gamma with that
-link, this holds <strong>regardless of whether an intercept is present</strong>,
-so dropping the intercept does not avoid it there (see <code>method = "OZ"</code>
-below). It does <em>not</em> occur in general for other canonical links such
-as the logit (binomial can be centered with an intercept without
-issue). When it does occur, <code><a href="bkw_diagnostics.html">bkw_diagnostics()</a></code> and
-<code><a href="rvif_diagnostics.html">rvif_diagnostics()</a></code> report it as an error rather than silent <code>NaN</code>s;
-this is the classical reason Belsley, Kuh and Welsch advise against
-centering for collinearity diagnostics. Ignored whenever <code>method</code> is
-not <code>NULL</code> (see below).</p></dd>
+general canonical-link fact: it happens whenever <code>sqrt(w) * linear.predictors</code> is constant across all observations, which is a
+structural identity of the <strong>Gamma family with its canonical (inverse)
+link</strong> (<code>sqrt(w) = mu</code>, <code>eta = 1/mu</code>, so their product is exactly 1
+for every observation) – and, notably for Gamma with that link, this
+holds <strong>regardless of whether an intercept is present</strong>, so dropping
+the intercept does not avoid it there (see <code>method = "OZ"</code> below). It
+does <em>not</em> occur in general for other canonical links such as the
+logit (binomial can be centered with an intercept without issue).
+When it does occur, <code><a href="bkw_diagnostics.html">bkw_diagnostics()</a></code> and <code><a href="rvif_diagnostics.html">rvif_diagnostics()</a></code>
+report it as an error rather than silent <code>NaN</code>s; this is the classical
+reason Belsley, Kuh and Welsch advise against centering for
+collinearity diagnostics. Ignored whenever <code>method</code> is not <code>NULL</code>
+(see below).</p></dd>
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
@@ -174,14 +173,14 @@ passed and labels the result accordingly (<code>NC_RAW</code>, <code>NC_MP</code
 <dd><p>No transformation at all. <code>CN</code> is
 computed directly on \(X'WX\) – the IRLS-weighted design matrix
 (including the intercept column, if any), neither centered nor
-scaled (equivalent to <code>center = FALSE, scale = FALSE</code>). This is the
-"original, uncentered and unscaled data" baseline against which
-<code>"WS"</code>'s unit-length scaling can be compared: because the
+scaled (equivalent to <code>center = FALSE, scale = FALSE</code>). This is
+the "original, uncentered and unscaled data" baseline against
+which <code>"WS"</code>'s unit-length scaling can be compared: because the
 explanatory variables are typically on very different scales,
 <code>NC_RAW</code> is dominated by that scale disparity and is usually far
 larger than <code>NC_WS</code>, even when the underlying collinearity is the
-same – which is exactly why Weissfeld and Sereika (1991) introduced
-the unit-length rescaling in the first place.</p></dd>
+same – which is exactly why Weissfeld and Sereika (1991)
+introduced the unit-length rescaling in the first place.</p></dd>
 
 <dt><code>"MP"</code></dt>
 <dd><p>MacKinnon and Puterman (1989). The <em>original</em>
@@ -196,28 +195,23 @@ applied to the refit). Refitting is mathematically redundant –
 a GLM's fitted values, and hence its IRLS weights at convergence,
 are invariant to any linear rescaling of the columns of <code>X</code> – but
 is carried out explicitly to mirror the original definition (and
-requires the <span class="pkg">multiColl</span> package).</p></dd>
+requires the <a href="https://CRAN.R-project.org/package=multiColl" class="external-link"><span class="pkg">multiColl</span></a> package).</p></dd>
 
 <dt><code>"MS"</code></dt>
 <dd><p>Marx and Smith (1990). Like <code>"MP"</code>, a transform-then-fit
 method, but the explanatory variables (excluding the intercept
 column, if any – a constant column of ones cannot itself be
-centered and rescaled to unit length) are first <strong>centered on
-their own mean and then rescaled to unit Euclidean length</strong>, the
-GLM is <strong>refit</strong> on those centered-and-scaled variables (with an
-ordinary intercept re-added whenever the original model had one),
-and <code>CN</code> is computed on that refit's IRLS-weighted
+centered and rescaled to unit length) are first <strong>centered on their
+own mean and then rescaled to unit Euclidean length</strong>, the GLM is
+<strong>refit</strong> on those centered-and-scaled variables (with an ordinary
+intercept re-added whenever the original model had one), and
+<code>CN</code> is computed on that refit's IRLS-weighted
 information matrix with <strong>no further transformation</strong>. Unlike
 <code>"MP"</code>'s pure rescaling, centering here generally shifts the fitted
 values themselves (the refit intercept absorbs the new baseline),
 so the refit is a genuinely different fit from <code>model</code>, exactly as
 Marx and Smith (1990) prescribe for their weighted multicollinearity
-diagnostics in logistic regression. For a model with <strong>no</strong>
-intercept, all columns are centered and the refit also has no
-intercept; this can fail to converge for some family/link
-combinations (e.g. Gamma with the inverse link, which needs
-positive fitted values) since centering removes the constant
-baseline a no-intercept model relies on.</p></dd>
+diagnostics in logistic regression.</p></dd>
 
 <dt><code>"WS"</code></dt>
 <dd><p>Weissfeld and Sereika (1991). The GLM is fit on the
@@ -229,23 +223,22 @@ of <code><a href="bkw_diagnostics.html">bkw_diagnostics()</a></code>/<code><a hr
 <dt><code>"OZ"</code></dt>
 <dd><p>Ozkale (2019). The Weissfeld-Sereika procedure, but the
 IRLS-weighted design matrix is additionally <em>centered</em> before
-being scaled to unit length (equivalent to <code>center = TRUE, scale =
-"unit"</code>). If <code>model</code> has an intercept, its column is <strong>dropped</strong>
+being scaled to unit length (equivalent to <code>center = TRUE, scale = "unit"</code>). If <code>model</code> has an intercept, its column is <strong>dropped</strong>
 from the design matrix before centering/scaling (the IRLS weights
 used are still those of the original, with-intercept fit): every
 worked example in Ozkale (2019, Sec. 5) fits the GLM <em>without</em> an
 intercept term, and for most family/link combinations dropping the
-intercept is exactly what avoids the exact rank-deficiency described
-under <code>center</code> above. <strong>Exception:</strong> for the Gamma family with
-its canonical (inverse) link, that rank-deficiency is structural
-regardless of whether an intercept is present or has been dropped
-(<code>sqrt(w) * linear.predictors</code> is exactly 1 for every observation
-either way) – this is exactly what happens in Ozkale (2019, Sec.
-5.3)'s own Gamma example, where the smallest eigenvalue she reports
-(4.0371e-17) is already at floating-point noise level; <code>NC_OZ</code> will
-then legitimately be reported as <code>Inf</code> with a warning, rather than
-the platform-dependent large-but-nominally-finite number her software
-happened to print.</p></dd>
+intercept is exactly what avoids the exact rank-deficiency
+described under <code>center</code> above. <strong>Exception:</strong> for the Gamma
+family with its canonical (inverse) link, that rank-deficiency is
+structural regardless of whether an intercept is present or has
+been dropped (<code>sqrt(w) * linear.predictors</code> is exactly 1 for every
+observation either way) – this is exactly what happens in Ozkale
+(2019, Sec. 5.3)'s own Gamma example, where the smallest eigenvalue
+she reports (4.0371e-17) is already at floating-point noise level;
+<code>NC_OZ</code> will then legitimately be reported as <code>Inf</code> with a warning,
+rather than the platform-dependent large-but-nominally-finite
+number her software happened to print.</p></dd>
 
 
 </dl><p>Leave as <code>NULL</code> (the default) to use <code>center</code>/<code>scale</code> directly, exactly

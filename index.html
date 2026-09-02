@@ -202,12 +202,12 @@
 <div class="section level2">
 <h2 id="ml-collinearity-lesaffre-and-marx-1993">ML-collinearity (Lesaffre and Marx, 1993)<a class="anchor" aria-label="anchor" href="#ml-collinearity-lesaffre-and-marx-1993"></a>
 </h2>
-<p>@lesaffre1993 distinguish two structurally different causes of an ill-conditioned information matrix in a GLM: ordinary collinearity among the explanatory variables, and <em>ML-collinearity</em> – ill-conditioning that is not attributable to the explanatory variables themselves, but to the combination of the response, the fitted coefficients and the link function. To tell them apart they compare <code>sqrt(CN)</code> of the <em>original</em> design matrix <code>X</code> (via <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::CNs()</code></a>, <code>CNs(X)[1]</code>) against <code>sqrt(CN)</code> of the IRLS-weighted information matrix under <code>method = "MP"</code> (Mackinnon and Puterman, 1989):</p>
+<p>@lesaffre1993 distinguish two structurally different causes of an ill-conditioned information matrix in a GLM: ordinary collinearity among the explanatory variables, and <em>ML-collinearity</em> – ill-conditioning that is not attributable to the explanatory variables themselves, but to the combination of the response, the fitted coefficients and the link function. To tell them apart they compare <code>sqrt(CN)</code> of the <em>original</em> design matrix <code>X</code> (via <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::CNs()</code></a>; <code>CNs(X)</code> returns a list with the condition number without the intercept and with the intercept, in that order (or a bare scalar, the with-intercept value, when <code>X</code> has only one regressor besides the intercept); since <code>kappa_X</code> standardizes <code>X</code> <em>including</em> the constant vector, the with-intercept value is the one used) against <code>sqrt(CN)</code> of the IRLS-weighted information matrix under <code>method = "MP"</code> (Mackinnon and Puterman, 1989):</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/ml_collinearity.html">ml_collinearity</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
 <pre><code>ML-collinearity diagnostic (Lesaffre and Marx, 1993)
 
-sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 190.7765
+sqrt(CN) of X (original design matrix, multiColl::CNs(X), with intercept): 190.7765
 sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542
 ratio (sqrt(CN)_W / sqrt(CN)_X): 1.7295
 

@@ -242,9 +242,14 @@ is not attributable to the explanatory variables themselves, but to the
 combination of the response, the fitted coefficients and the link
 function. To tell them apart they compare `sqrt(CN)` of the *original*
 design matrix `X` (via
-[`multiColl::CNs()`](https://cran.r-project.org/package=multiColl),
-`CNs(X)[1]`) against `sqrt(CN)` of the IRLS-weighted information matrix
-under `method = "MP"` (Mackinnon and Puterman, 1989):
+[`multiColl::CNs()`](https://cran.r-project.org/package=multiColl);
+`CNs(X)` returns a list with the condition number without the intercept
+and with the intercept, in that order (or a bare scalar, the
+with-intercept value, when `X` has only one regressor besides the
+intercept); since `kappa_X` standardizes `X` *including* the constant
+vector, the with-intercept value is the one used) against `sqrt(CN)` of
+the IRLS-weighted information matrix under `method = "MP"` (Mackinnon
+and Puterman, 1989):
 
 ``` r
 
@@ -253,7 +258,7 @@ ml_collinearity(mod)
 
     ML-collinearity diagnostic (Lesaffre and Marx, 1993)
 
-    sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 190.7765
+    sqrt(CN) of X (original design matrix, multiColl::CNs(X), with intercept): 190.7765
     sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542
     ratio (sqrt(CN)_W / sqrt(CN)_X): 1.7295
 

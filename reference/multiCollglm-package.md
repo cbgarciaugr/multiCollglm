@@ -16,6 +16,16 @@ the condition number of the original design matrix against that of the
 IRLS-weighted information matrix to distinguish ordinary collinearity
 from ML-collinearity.
 
+## See also
+
+Useful links:
+
+- <https://github.com/cbgarciaugr/multiCollglm>
+
+- <https://cbgarciaugr.github.io/multiCollglm/>
+
+- Report bugs at <https://github.com/cbgarciaugr/multiCollglm/issues>
+
 ## Author
 
 **Maintainer**: Catalina Garcia Garcia <cbgarcia@go.ugr.es>
@@ -23,3 +33,5 @@ from ML-collinearity.
 Authors:
 
 - Catalina Garcia Garcia <cbgarcia@go.ugr.es>
+
+- Roman Salmeron Gomez

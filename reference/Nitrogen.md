@@ -16,14 +16,7 @@ Nitrogen
 
 ## Format
 
-An object of class `data.frame` with 25 rows and 5 columns.
-
-## Source
-
-Chatterjee, S. and Hadi, A.S. (1988). *Sensitivity Analysis in Linear
-Regression*. John Wiley and Sons.
-
-## Details
+A data frame with 25 rows and 5 columns:
 
 - y:
 
@@ -45,6 +38,13 @@ Regression*. John Wiley and Sons.
 - x4:
 
   Stability factor, in degrees Fahrenheit.
+
+## Source
+
+Chatterjee, S. and Hadi, A.S. (1988). *Sensitivity Analysis in Linear
+Regression*. John Wiley and Sons.
+
+## Details
 
 Used in
 [`condition_number()`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)'s

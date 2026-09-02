@@ -63,17 +63,7 @@ observations, which is what is included here.</p>
 
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
-    <p>An object of class <code>data.frame</code> with 25 rows and 5 columns.</p>
-    </div>
-    <div class="section level2">
-    <h2 id="source">Source<a class="anchor" aria-label="anchor" href="#source"></a></h2>
-    <p>Chatterjee, S. and Hadi, A.S. (1988). <em>Sensitivity Analysis
-in Linear Regression</em>. John Wiley and Sons.</p>
-    </div>
-    <div class="section level2">
-    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-
-<dl><dt>y</dt>
+    <p>A data frame with 25 rows and 5 columns:</p><dl><dt>y</dt>
 <dd><p>Nitrogen dioxide concentration, in parts per hundred million
 (p.p.h.m.).</p></dd>
 
@@ -90,7 +80,15 @@ in Linear Regression</em>. John Wiley and Sons.</p>
 <dd><p>Stability factor, in degrees Fahrenheit.</p></dd>
 
 
-</dl><p>Used in <code><a href="condition_number.html">condition_number()</a></code>'s reproduction article for a GLM with a
+</dl></div>
+    <div class="section level2">
+    <h2 id="source">Source<a class="anchor" aria-label="anchor" href="#source"></a></h2>
+    <p>Chatterjee, S. and Hadi, A.S. (1988). <em>Sensitivity Analysis
+in Linear Regression</em>. John Wiley and Sons.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Used in <code><a href="condition_number.html">condition_number()</a></code>'s reproduction article for a GLM with a
 Gamma family and canonical (inverse) link, where it also illustrates a
 structural singularity: for that family/link combination,
 <code>sqrt(w) * eta</code> is exactly 1 for every observation, so centering the

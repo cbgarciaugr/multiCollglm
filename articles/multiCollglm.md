@@ -221,9 +221,9 @@ coefficients and the link function.
 ml_collinearity(mod)
 #> ML-collinearity diagnostic (Lesaffre and Marx, 1993)
 #> 
-#> sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 36.9284
+#> sqrt(CN) of X (original design matrix, multiColl::CNs(X), with intercept): 36.9727
 #> sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 85.2735
-#> ratio (sqrt(CN)_W / sqrt(CN)_X): 2.3092
+#> ratio (sqrt(CN)_W / sqrt(CN)_X): 2.3064
 #> 
 #> Collinearity in X (sqrt(CN)_X > 30): YES
 #> ML-collinearity (ratio_wx > 5 and sqrt(CN)_W > 30): no

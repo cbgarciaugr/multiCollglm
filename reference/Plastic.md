@@ -18,14 +18,7 @@ Plastic
 
 ## Format
 
-An object of class `data.frame` with 100 rows and 5 columns.
-
-## Source
-
-Marcondes Filho, D. and Sant'Anna, A.M.P. (2016). Statistical process
-control applied to a plastic plywood manufacturing process.
-
-## Details
+A data frame with 100 rows and 5 columns:
 
 - Y:
 
@@ -47,6 +40,11 @@ control applied to a plastic plywood manufacturing process.
 
   Drying temperature, in degrees Celsius.
 
+## Source
+
+Marcondes Filho, D. and Sant'Anna, A.M.P. (2016). Statistical process
+control applied to a plastic plywood manufacturing process.
+
 ## Examples
 
 ``` r
@@ -57,6 +55,6 @@ condition_number(mod, method = "WS")
 #> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 4.9872 0.0080 0.0046 0.0001 0.0000
 #> 
-#> CN (NC_WS) (eigenvalue scale): 768847.1927
+#> CN (NC_WS) (eigenvalue scale): 768847.1926
 #> sqrt(CN) (NC_WS) (classical, singular-value scale): 876.8393
 ```

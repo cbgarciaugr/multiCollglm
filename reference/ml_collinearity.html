@@ -7,8 +7,7 @@ the explanatory variables, but instead arises from the combination of
 the response, the fitted coefficients and the link function. To tell
 the two apart they compare sqrt(CN) of the original (unweighted)
 design matrix X against sqrt(CN) of the IRLS-weighted information
-matrix under Mackinnon and Puterman's (1989) definition (method =
-&quot;MP&quot;; both quantities standardize the columns of X, including the
+matrix under Mackinnon and Puterman's (1989) definition (method = &quot;MP&quot;; both quantities standardize the columns of X, including the
 intercept, to unit length first)."><meta property="og:description" content="Lesaffre and Marx (1993) distinguish two, structurally different causes
 of an ill-conditioned (estimated) information matrix in a GLM: ordinary
 collinearity among the explanatory variables themselves, and what they
@@ -17,8 +16,7 @@ the explanatory variables, but instead arises from the combination of
 the response, the fitted coefficients and the link function. To tell
 the two apart they compare sqrt(CN) of the original (unweighted)
 design matrix X against sqrt(CN) of the IRLS-weighted information
-matrix under Mackinnon and Puterman's (1989) definition (method =
-&quot;MP&quot;; both quantities standardize the columns of X, including the
+matrix under Mackinnon and Puterman's (1989) definition (method = &quot;MP&quot;; both quantities standardize the columns of X, including the
 intercept, to unit length first)."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -63,8 +61,7 @@ the explanatory variables, but instead arises from the combination of
 the response, the fitted coefficients and the link function. To tell
 the two apart they compare <code>sqrt(CN)</code> of the original (unweighted)
 design matrix <code>X</code> against <code>sqrt(CN)</code> of the IRLS-weighted information
-matrix under Mackinnon and Puterman's (1989) definition (<code>method =
-"MP"</code>; both quantities standardize the columns of <code>X</code>, including the
+matrix under Mackinnon and Puterman's (1989) definition (<code>method = "MP"</code>; both quantities standardize the columns of <code>X</code>, including the
 intercept, to unit length first).</p>
     </div>
 
@@ -159,21 +156,30 @@ and Welsch, 1980 rule of thumb on the <code>sqrt(CN)</code> scale).</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>multicollglm_mlcoll</code> with <code>kappa_x</code>
 (<code>sqrt(CN)</code> of the original design matrix <code>X</code>, via
-<code>multiColl::CNs(X)[1]</code>), <code>kappa_w</code> (<code>sqrt(CN)</code> of the
+<code>multiColl::CNs(X)</code>, the "with intercept" condition number),
+<code>kappa_w</code> (<code>sqrt(CN)</code> of the
 MacKinnon-Puterman information matrix, i.e.
 <code>condition_number(model, method = "MP")$condition_index</code>), <code>ratio_wx</code>
 (<code>kappa_w / kappa_x</code>), the two thresholds used (<code>ratio_threshold</code>,
-<code>kappa_threshold</code>), and the logical flags <code>collinearity_x</code> (<code>kappa_x &gt;
-kappa_threshold</code>) and <code>ml_collinearity</code> (<code>ratio_wx &gt; ratio_threshold</code>
+<code>kappa_threshold</code>), and the logical flags <code>collinearity_x</code> (<code>kappa_x &gt; kappa_threshold</code>) and <code>ml_collinearity</code> (<code>ratio_wx &gt; ratio_threshold</code>
 and <code>kappa_w &gt; kappa_threshold</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>ml_collinearity()</code> computes <code>sqrt(CN)</code> of <code>X</code> with
-<code><a href="https://rdrr.io/pkg/multiColl/man/CNs.html" class="external-link">multiColl::CNs()</a></code> (<code>CNs(X)[1]</code>, following Lesaffre and Marx, 1993,
-Sec. 4.2's own recommendation) and <code>sqrt(CN)</code> of the MacKinnon-Puterman
-information matrix with <code>condition_number(model, method = "MP")</code>, then
-forms their ratio, <code>ratio_wx = sqrt(CN)_W / sqrt(CN)_X</code>. Following
+<code><a href="https://rdrr.io/pkg/multiColl/man/CNs.html" class="external-link">multiColl::CNs()</a></code>, following Lesaffre and Marx (1993, Sec. 4.2)'s own
+recommendation. <code>CNs(X)</code> (with <code>X</code> including the intercept column)
+returns a list of two elements, the condition number without and with
+the intercept (in that order; when <code>X</code> has only one regressor besides
+the intercept, it instead returns a bare numeric scalar, the
+with-intercept value, since the without-intercept quantity is undefined
+for a single column). Since Lesaffre and Marx's <code>kappa_X</code> is explicitly
+computed on <code>X</code> <strong>with</strong> the constant vector standardized to unit
+length along with the rest, this uses the with-intercept value, which
+reproduces Lesaffre and Marx's (1993) own published <code>kappa_X = 190.78</code>
+exactly for their Lee cancer-remission example, while the
+without-intercept value does not. <code>sqrt(CN)</code> of the MacKinnon-Puterman
+information matrix is computed with <code>condition_number(model, method = "MP")</code>, and the two are combined into their ratio, <code>ratio_wx = sqrt(CN)_W / sqrt(CN)_X</code>. Following
 Lesaffre and Marx (1993, Sec. 4.2), a model is flagged with
 ML-collinearity only when <strong>both</strong> <code>ratio_wx &gt; ratio_threshold</code>
 (default 5) <strong>and</strong> <code>sqrt(CN)_W &gt; kappa_threshold</code> (default 30): the

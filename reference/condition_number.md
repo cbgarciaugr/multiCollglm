@@ -155,7 +155,8 @@ condition_number(
       Refitting is mathematically redundant – a GLM's fitted values, and
       hence its IRLS weights at convergence, are invariant to any linear
       rescaling of the columns of `X` – but is carried out explicitly to
-      mirror the original definition (and requires the multiColl
+      mirror the original definition (and requires the
+      [multiColl](https://CRAN.R-project.org/package=multiColl)
       package).
 
   `"MS"`
@@ -173,12 +174,7 @@ condition_number(
       refit intercept absorbs the new baseline), so the refit is a
       genuinely different fit from `model`, exactly as Marx and
       Smith (1990) prescribe for their weighted multicollinearity
-      diagnostics in logistic regression. For a model with **no**
-      intercept, all columns are centered and the refit also has no
-      intercept; this can fail to converge for some family/link
-      combinations (e.g. Gamma with the inverse link, which needs
-      positive fitted values) since centering removes the constant
-      baseline a no-intercept model relies on.
+      diagnostics in logistic regression.
 
   `"WS"`
 
