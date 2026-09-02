@@ -13,12 +13,16 @@ unit length by column (without centering); see `center`/`scale` below.
 called with `ul = TRUE`, so it re-scales that matrix to Euclidean unit
 length right before computing the RVIF, whatever `center`/`scale` were
 used to build it (a matrix that is already unit length, the default, is
-left unchanged by this step). Unlike the classical VIF, the RVIF is able
-to detect both essential collinearity (near-linear relationships among
-the regressors) and non-essential collinearity (near-linear
-relationships between the intercept and one or more regressors), and
-also decomposes, for each variable, the percentage of near collinearity
-it is responsible for.
+left unchanged by this step). As a consequence, **`scale` has no effect
+on the RVIF result**: any value other than `"unit"` is silently
+overridden by that final re-scaling, so a warning is issued whenever
+`scale != "unit"` is requested (`center` is unaffected and still changes
+the result, since `rvifs()` does not undo it). Unlike the classical VIF,
+the RVIF is able to detect both essential collinearity (near-linear
+relationships among the regressors) and non-essential collinearity
+(near-linear relationships between the intercept and one or more
+regressors), and also decomposes, for each variable, the percentage of
+near collinearity it is responsible for.
 
 ## Usage
 
@@ -101,34 +105,30 @@ rvif_diagnostics(
   or any value accepted by
   [`scale()`](https://rdrr.io/r/base/scale.html)'s own `center`
   argument: `TRUE` to center each column on its mean, or a numeric
-  vector of per-column values to subtract. Centering an IRLS-weighted
-  design matrix that includes an intercept can leave it exactly
-  rank-deficient for *some* family/link combinations, but this is not a
-  general canonical-link fact: it happens whenever
-  `sqrt(w) * linear.predictors` is constant across all observations,
-  which is a structural identity of the **Gamma family with its
-  canonical (inverse) link** (`sqrt(w) = mu`, `eta = 1/mu`, so their
-  product is exactly 1 for every observation) – and, notably for Gamma
-  with that link, this holds **regardless of whether an intercept is
-  present**, so dropping the intercept does not avoid it there (see
-  `method = "OZ"` below). It does *not* occur in general for other
-  canonical links such as the logit (binomial can be centered with an
-  intercept without issue). When it does occur,
+  vector of per-column values to subtract. For a canonical-link GLM with
+  an intercept, centering the IRLS-weighted design matrix is
+  mathematically guaranteed to drop its rank by exactly one (since
+  `sqrt(w) * eta` is then constant), which
   [`bkw_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/bkw_diagnostics.md)
-  and `rvif_diagnostics()` report it as an error rather than silent
-  `NaN`s; this is the classical reason Belsley, Kuh and Welsch advise
-  against centering for collinearity diagnostics. Ignored whenever
-  `method` is not `NULL` (see below).
+  and `rvif_diagnostics()` report as an error rather than silent `NaN`s;
+  this is the classical reason Belsley, Kuh and Welsch advise against
+  centering for collinearity diagnostics.
 
 - scale:
 
-  Either `"unit"` (default; each column is scaled to Euclidean/L2 unit
-  length, as originally proposed and required for the classical
-  `sqrt(CN)` thresholds and the RVIF formula) or any value accepted by
-  [`scale()`](https://rdrr.io/r/base/scale.html)'s own `scale` argument:
-  `TRUE` for root-mean-square scaling, `FALSE` for no scaling, or a
-  numeric vector of per-column divisors. Ignored whenever `method` is
-  not `NULL` (see below).
+  Either `"unit"` (default) or any value accepted by
+  [`scale()`](https://rdrr.io/r/base/scale.html)'s own `scale` argument
+  (`TRUE`, `FALSE`, or a numeric vector of per-column divisors) – but
+  note that, unlike in
+  [`condition_number()`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)
+  and
+  [`bkw_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/bkw_diagnostics.md),
+  **this has no effect on the RVIF result**:
+  [`rvif::rvifs()`](https://rdrr.io/pkg/rvif/man/rvifs.html) is always
+  called with `ul = TRUE`, which re-scales the design matrix to
+  Euclidean unit length right before computing the RVIF regardless of
+  `scale`. Requesting anything other than `"unit"` issues a warning for
+  this reason.
 
 - tol:
 
