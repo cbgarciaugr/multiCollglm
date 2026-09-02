@@ -51,10 +51,7 @@
 <div class="page-header"><h1 id="multicollglm">multiCollglm<a class="anchor" aria-label="anchor" href="#multicollglm"></a>
 </h1></div>
 <p>Collinearity diagnostics for generalized linear models (GLMs), on <code>glm</code> objects or on regularized models fitted with <code>glmnet</code> / <code>cv.glmnet</code>.</p>
-<p>All three diagnostics (<code><a href="reference/condition_number.html">condition_number()</a></code>, <code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> and <code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code>) are computed, generically for any family and link function, on the design matrix weighted by the IRLS weights at convergence (<code>mod$weights</code>). By default that matrix is scaled to unit length by column and <strong>not</strong> centered — this is the Weissfeld and Sereika (1991) definition, described in detail below. <code><a href="reference/condition_number.html">condition_number()</a></code> also lets you pick one of five published condition-number definitions directly via its <code>method</code> argument, or build a custom transformation yourself with <code>center</code>/<code>scale</code>.</p>
-<p>For <code>glmnet</code>/<code>cv.glmnet</code>, since there is no IRLS fit and no convergence weights, the package identifies the active set of variables at the given <code>lambda</code> and refits a standard <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> on them so the same diagnostics can be computed.</p>
-<p><code><a href="reference/ml_collinearity.html">ml_collinearity()</a></code> implements a fourth, complementary diagnostic: Lesaffre and Marx’s (1993) comparison between the condition number of the <em>original</em> design matrix and that of the IRLS-weighted information matrix, used to tell apart ordinary collinearity among the explanatory variables from <em>ML-collinearity</em> (see below).</p>
-<p>See <code><a href="articles/multiCollglm.html">vignette("multiCollglm")</a></code> for a getting-started guide, and the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/index.html">package website</a> for worked reproductions of published works, using four example datasets bundled with the package (<code>LeeCancer</code>, <code>Nitrogen</code>, <code>Mine</code>,<code>Plastic</code>) and a fifth (<code>Bodyfat</code> included in <code>TH.data</code> package).</p>
+<p><code><a href="reference/condition_number.html">condition_number()</a></code>, <code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> and <code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code> generalize the classical linear-regression collinearity diagnostics to any family and link function, computed on the design matrix weighted by the IRLS weights at convergence. <code><a href="reference/ml_collinearity.html">ml_collinearity()</a></code> adds a fourth, complementary diagnostic, comparing the condition number of the <em>original</em> design matrix against that of the IRLS-weighted information matrix (Lesaffre and Marx, 1993) to tell apart ordinary collinearity among the explanatory variables from <em>ML-collinearity</em>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -64,8 +61,7 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_local</span><span class="op">(</span><span class="st">"C:/Users/Usuario/Documents/R/multiCollglm"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="usage-with-glm">Usage with <code>glm</code>
-<a class="anchor" aria-label="anchor" href="#usage-with-glm"></a>
+<h2 id="quick-example">Quick example<a class="anchor" aria-label="anchor" href="#quick-example"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/cbgarciaugr/multiCollglm" class="external-link">multiCollglm</a></span><span class="op">)</span></span>
@@ -74,156 +70,14 @@
 <span></span>
 <span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/bkw_diagnostics.html">bkw_diagnostics</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/rvif_diagnostics.html">rvif_diagnostics</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<p><code>condition_number(mod)</code>, with no <code>method</code> argument, reproduces exactly the calculation proposed by Weissfeld and Sereika (1991):</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
-<span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
-<span><span class="va">Wsqrt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">W</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">Xw</span> <span class="op">&lt;-</span> <span class="va">Wsqrt</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">X</span></span>
-<span><span class="va">X_unit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span><span class="va">Xw</span>, center <span class="op">=</span> <span class="cn">FALSE</span>, scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">Xw</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">M_star</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">X_unit</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">X_unit</span></span>
-<span><span class="va">eig_star</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/eigen.html" class="external-link">eigen</a></span><span class="op">(</span><span class="va">M_star</span>, symmetric <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">values</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">CN</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">eig_star</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">eig_star</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">CN</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code> calls <a href="https://cran.r-project.org/package=rvif" class="external-link"><code>rvif::rvifs()</code></a> on that same <code>X_unit</code> matrix (with <code>ul = TRUE</code>, so it is re-scaled to unit length right before the RVIF is computed, a no-op under the default transformation) to get the Redefined Variance Inflation Factor of @salmeron2025, which is able to detect both essential and non-essential collinearity and decomposes the percentage of near collinearity attributable to each variable.</p>
+<span><span class="fu"><a href="reference/rvif_diagnostics.html">rvif_diagnostics</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/ml_collinearity.html">ml_collinearity</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="condition-number-methods-method-argument">Condition-number methods (<code>method</code> argument)<a class="anchor" aria-label="anchor" href="#condition-number-methods-method-argument"></a>
+<h2 id="learn-more">Learn more<a class="anchor" aria-label="anchor" href="#learn-more"></a>
 </h2>
-<p><code><a href="reference/condition_number.html">condition_number()</a></code> accepts a <code>method</code> argument that is a shortcut for four published definitions of the CN for a GLM (<code>nc_label</code>: <code>NC_MP</code>, <code>NC_MS</code>, <code>NC_WS</code> or <code>NC_OZ</code>). It is also included a method that does not include transformation (<code>NC_RAW</code>). Passing <code>method</code> overrides whatever <code>center</code>/<code>scale</code> you supplied and labels the result accordingly:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"RAW"</span><span class="op">)</span> <span class="co"># no transformation at all</span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MP"</span><span class="op">)</span>  <span class="co"># Mackinnon and Puterman (1989)</span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MS"</span><span class="op">)</span>  <span class="co"># Marx and Smith (1990)</span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"WS"</span><span class="op">)</span>  <span class="co"># Weissfeld and Sereika (1991) -- the default</span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"OZ"</span><span class="op">)</span>  <span class="co"># Ozkale (2019)</span></span></code></pre></div>
-<table class="table">
-<colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
-</colgroup>
-<thead><tr>
-<th><code>method</code></th>
-<th>Transformation</th>
-<th>Comments</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code>"RAW"</code></td>
-<td>None at all: eigenvalues of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mo>′</mo></msup><mover><mi>W</mi><mo accent="true">̂</mo></mover><mi>X</mi></mrow><annotation encoding="application/x-tex">X'\hat{W}X</annotation></semantics></math> directly (intercept included, no centering, no scaling). The plain baseline against which the other four can be judged — usually dominated by however differently-scaled the explanatory variables happen to be.</td>
-<td></td>
-</tr>
-<tr>
-<td><code>"MP"</code></td>
-<td>@mackinnon1989. The <em>original</em> explanatory variables (intercept included) are rescaled to unit Euclidean length with <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::lu()</code></a> <strong>before</strong> fitting.</td>
-<td>A GLM’s IRLS weights at convergence are invariant to any linear rescaling of <code>X</code> — but done explicitly to mirror the original definition).</td>
-</tr>
-<tr>
-<td><code>"MS"</code></td>
-<td>@marx1990. The explanatory variables (excluding the intercept, if any) are <strong>centered on their own mean and rescaled to unit Euclidean length before fitting</strong>, with an ordinary intercept re-added if the original model had one.</td>
-<td>Unlike <code>"MP"</code> centering shifts the fitted values themselves, so the refit is genuinely different from <code>model</code>.</td>
-</tr>
-<tr>
-<td><code>"WS"</code></td>
-<td>@weissfeld1991, the package default. The GLM is fit on the original variables and the IRLS-weighted information matrix is scaled to unit column length <em>afterwards</em> (no centering).</td>
-<td></td>
-</tr>
-<tr>
-<td><code>"OZ"</code></td>
-<td>@ozkale2021. Same as <code>"WS"</code>, but the IRLS-weighted design matrix is additionally <strong>centered</strong> before being scaled to unit length. If <code>model</code> has an intercept, its column is <strong>dropped</strong> before centering/scaling (every worked example in Ozkale 2019, Sec. 5, fits without an intercept term).</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>A few things worth knowing before picking one:</p>
-<ul>
-<li>
-<strong><code>"MP"</code> requires the <code>multiColl</code> package</strong> (<code>Suggests</code>, not a hard dependency); it errors with an informative message if it isn’t installed.</li>
-<li>
-<strong><code>"MS"</code> can fail to converge for a model with no intercept.</strong> Centering removes every column’s mean. For some family/link combinations (most notably Gamma with the inverse link, which needs strictly positive fitted values) the refit’s IRLS iteration can diverge. When that happens you get an informative error explaining why this is expected for that combination and is not a bug: @marx1990 developed the method for logistic regression models, which ordinarily do include an intercept. If you hit this, use <code>"WS"</code> or <code>"OZ"</code> for that particular model instead.</li>
-<li>
-<strong>Centering an IRLS-weighted design matrix that includes an intercept can leave it exactly rank-deficient</strong> for <em>some</em> family/link combinations (for example the Gamma family with its canonical (inverse) link specifically (<code>sqrt(w) * eta</code> is exactly 1 for every observation, regardless of whether an intercept is present). <code>"OZ"</code> sidesteps this for most families by dropping the intercept before centering, but for Gamma-inverse the singularity is structural either way and <code>NC_OZ</code> will then legitimately come back as <code>Inf</code> with a warning. See <a href=""><code>Nitrogen</code> reproduction article</a> on the package website for a worked example.</li>
-<li>Leave <code>method = NULL</code> (the default) to keep using <code>center</code>/<code>scale</code> directly, exactly as in earlier versions of this function — see the next section.</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="changing-the-data-transformation-directly-without-method">Changing the data transformation directly (without <code>method</code>)<a class="anchor" aria-label="anchor" href="#changing-the-data-transformation-directly-without-method"></a>
-</h2>
-<p>All three functions also accept <code>center</code> and <code>scale</code> arguments, applied to the IRLS-weighted design matrix before computing any diagnostic (these are ignored whenever <code>method</code> is supplied). They accept the same values as base R’s own <a href="https://rdrr.io/r/base/scale.html" class="external-link"><code>scale()</code></a>:</p>
-<ul>
-<li>
-<code>center</code>: <code>FALSE</code> (default), <code>TRUE</code> (subtract column means), or a numeric vector of per-column values to subtract.</li>
-<li>
-<code>scale</code>: <code>TRUE</code> (root-mean-square scaling), <code>FALSE</code> (no scaling), or a numeric vector of per-column divisors.</li>
-</ul>
-<p>In addition, <code>scale</code> accept also <code>"unit"</code>, for unit legth transformation:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, scale<span class="op">=</span><span class="st">"unit"</span><span class="op">)</span> <span class="co"># unit length transformation</span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># root-mean-square scaling instead of unit length</span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co"># no scaling at all</span></span></code></pre></div>
-<p>scale = TRUE rescales every eigenvalue by the same factor (nrow(X) - 1) relative to the default scale = “unit”, so CN and sqrt(CN) are unaffected; scale = FALSE or a custom numeric vector generally do change them, since the columns are no longer put on a comparable scale.</p>
-<p><strong>Do not use <code>center = TRUE</code></strong> with an intercept model unless you know what you are doing, for the same reason described above for <code>"OZ"</code>: <code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> and <code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code> detect the resulting rank-deficiency and raise an informative error rather than returning <code>NaN</code>; this is precisely why Belsley, Kuh and Welsch recommend against centering for collinearity diagnostics. If you specifically want a centered diagnostic, prefer <code>method = "OZ"</code> or <code>method = "MS"</code>, which handle the intercept column correctly instead of centering it directly.</p>
-</div>
-<div class="section level2">
-<h2 id="usage-with-glmnet--cvglmnet">Usage with <code>glmnet</code> / <code>cv.glmnet</code>
-<a class="anchor" aria-label="anchor" href="#usage-with-glmnet--cvglmnet"></a>
-</h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://glmnet.stanford.edu" class="external-link">glmnet</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/cbgarciaugr/multiCollglm" class="external-link">multiCollglm</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"x4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">y</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://glmnet.stanford.edu/reference/glmnet.html" class="external-link">glmnet</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"inverse"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cvfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://glmnet.stanford.edu/reference/cv.glmnet.html" class="external-link">cv.glmnet</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"inverse"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">fit</span>, x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"inverse"</span><span class="op">)</span>, s <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">cvfit</span>, x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"inverse"</span><span class="op">)</span>, s <span class="op">=</span> <span class="st">"lambda.min"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/bkw_diagnostics.html">bkw_diagnostics</a></span><span class="op">(</span><span class="va">cvfit</span>, x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"inverse"</span><span class="op">)</span>, s <span class="op">=</span> <span class="st">"lambda.min"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/rvif_diagnostics.html">rvif_diagnostics</a></span><span class="op">(</span><span class="va">cvfit</span>, x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"inverse"</span><span class="op">)</span>, s <span class="op">=</span> <span class="st">"lambda.min"</span><span class="op">)</span></span></code></pre></div>
-<p>In these cases, <code><a href="reference/condition_number.html">condition_number()</a></code> / <code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> / <code><a href="reference/rvif_diagnostics.html">rvif_diagnostics()</a></code>:</p>
-<ol style="list-style-type: decimal">
-<li>Take the coefficient vector at the given <code>lambda</code> (<code>coef(fit, s = s)</code>).</li>
-<li>Keep the variables with a coefficient different from zero (the active set; the intercept does not count for this).</li>
-<li>Refit <code>glm(y ~ active_variables, family = family, weights = weights)</code> to obtain <code>mod$weights</code> (real IRLS weights at convergence).</li>
-<li>Apply the same calculation as in the direct <code>glm</code> case to that model (including, if you pass one, the <code>method</code> shortcut described above).</li>
-</ol>
-<p>The result also includes <code>active_vars</code> and <code>dropped_vars</code> so you know exactly on which sub-model the diagnostic was computed.</p>
-</div>
-<div class="section level2">
-<h2 id="bkw-rule-of-thumb">BKW rule of thumb<a class="anchor" aria-label="anchor" href="#bkw-rule-of-thumb"></a>
-</h2>
-<p><code><a href="reference/bkw_diagnostics.html">bkw_diagnostics()</a></code> flags as suspicious any dimension whose <code>sqrt(CN)</code> is <code>&gt;= 10</code> and on which at least two coefficients have a variance proportion <code>&gt;= 0.5</code> (@belsley1980). <code>sqrt(CN)</code> is on the singular-value (square-rooted) scale, so this threshold of 10 corresponds to a <code>CN</code> of 100 on the eigenvalue scale used by <code><a href="reference/condition_number.html">condition_number()</a></code> (<code>sqrt(CN)</code> is simply the square root of <code>CN</code>, i.e. <code>condition_index = sqrt(condition_number)</code>). Both thresholds are adjustable via <code>index_threshold</code> and <code>proportion_threshold</code>.</p>
-</div>
-<div class="section level2">
-<h2 id="ml-collinearity-lesaffre-and-marx-1993">ML-collinearity (Lesaffre and Marx, 1993)<a class="anchor" aria-label="anchor" href="#ml-collinearity-lesaffre-and-marx-1993"></a>
-</h2>
-<p>@lesaffre1993 distinguish two structurally different causes of an ill-conditioned information matrix in a GLM: ordinary collinearity among the explanatory variables, and <em>ML-collinearity</em> – ill-conditioning that is not attributable to the explanatory variables themselves, but to the combination of the response, the fitted coefficients and the link function. To tell them apart they compare <code>sqrt(CN)</code> of the <em>original</em> design matrix <code>X</code> (via <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::CNs()</code></a>; <code>CNs(X)</code> returns a list with the condition number without the intercept and with the intercept, in that order (or a bare scalar, the with-intercept value, when <code>X</code> has only one regressor besides the intercept); since <code>kappa_X</code> standardizes <code>X</code> <em>including</em> the constant vector, the with-intercept value is the one used) against <code>sqrt(CN)</code> of the IRLS-weighted information matrix under <code>method = "MP"</code> (Mackinnon and Puterman, 1989):</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/ml_collinearity.html">ml_collinearity</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></code></pre></div>
-<pre><code>ML-collinearity diagnostic (Lesaffre and Marx, 1993)
-
-sqrt(CN) of X (original design matrix, multiColl::CNs(X), with intercept): 190.7765
-sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542
-ratio (sqrt(CN)_W / sqrt(CN)_X): 1.7295
-
-Collinearity in X (sqrt(CN)_X &gt; 30): YES
-ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): no</code></pre>
-<p>(the example above is Lesaffre and Marx’s (1993) own Lee cancer-remission model, reproduced exactly in the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html"><code>LeeCancer</code> reproduction article</a>).</p>
-<p>Following @lesaffre1993 (Sec. 4.2), a model is flagged with <code>ml_collinearity = TRUE</code> only when <strong>both</strong> the ratio <code>sqrt(CN)_W / sqrt(CN)_X</code> exceeds <code>ratio_threshold</code> (default 5) <strong>and</strong> <code>sqrt(CN)_W</code> itself exceeds <code>kappa_threshold</code> (default 30) – a high ratio by itself, with a small <code>sqrt(CN)_W</code>, does not indicate an ill-conditioned information matrix to begin with. Separately, <code>sqrt(CN)_X &gt; kappa_threshold</code> flags ordinary collinearity among the explanatory variables (<code>collinearity_x</code>); if both flags are set and the ratio is close to 1, both types of collinearity are simultaneously present. <code><a href="reference/ml_collinearity.html">ml_collinearity()</a></code> also has <code>glmnet</code>/<code>cv.glmnet</code> methods, refitting on the active set exactly as the other three diagnostics do. <strong>Requires the <code>multiColl</code> package</strong> (<code>Suggests</code>, not a hard dependency).</p>
-</div>
-<div class="section level2">
-<h2 id="example-datasets">Example datasets<a class="anchor" aria-label="anchor" href="#example-datasets"></a>
-</h2>
-<p>Four real datasets used throughout the package’s reproduction articles ship with the package (<code>data(Nitrogen)</code>, <code>data(Mine)</code>, <code>data(LeeCancer)</code>, <code>data(Plastic)</code>. A fifth, <code>bodyfat</code>, is used but not bundled here since it already ships in the <a href="https://cran.r-project.org/package=TH.data" class="external-link"><code>TH.data</code></a> package.</p>
-</div>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h2>
+<p><code><a href="articles/multiCollglm.html">vignette("multiCollglm")</a></code> is the package’s complete guide: every function, the five condition-number definitions available via <code>method</code>, the <code>glmnet</code>/<code>cv.glmnet</code> interface, and the full ML-collinearity rationale.</p>
+<p>The <a href="https://cbgarciaugr.github.io/multiCollglm/">package website</a> also has the <a href="https://cbgarciaugr.github.io/multiCollglm/reference/index.html">full function reference</a> and a series of <a href="https://cbgarciaugr.github.io/multiCollglm/articles/index.html">reproduction articles</a>: real published cases reproduced with <code>multiCollglm</code>, using four example datasets bundled with the package (<code>LeeCancer</code>, <code>Nitrogen</code>, <code>Mine</code>, <code>Plastic</code>) and a fifth (<code>Bodyfat</code>, from the <code>TH.data</code> package).</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -231,6 +85,9 @@ ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): no</code></pre>
 <ul class="list-unstyled">
 <li><a href="https://github.com/cbgarciaugr/multiCollglm/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/cbgarciaugr/multiCollglm/issues" class="external-link">Report a bug</a></li>
+<li><a href="articles/multiCollglm.html">Complete guide (vignette)</a></li>
+<li><a href="reference/index.html">Full function reference</a></li>
+<li><a href="articles/index.html">Reproduction articles</a></li>
 </ul>
 </div>
 

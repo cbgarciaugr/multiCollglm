@@ -66,7 +66,14 @@ diagnostics (condition number, Belsley-Kuh-Welsch decomposition, and the
 Redefined Variance Inflation Factor, RVIF <span class="citation">(Salmerón et al. 2025)</span>) to any family and link
 function. All three are computed on the design matrix weighted by the
 IRLS weights at convergence and, by default, scaled to unit length by
-column (without centering).</p>
+column (without centering). <code><a href="../reference/ml_collinearity.html">ml_collinearity()</a></code> adds a
+fourth, complementary diagnostic: Lesaffre and Marx’s <span class="citation">(1993)</span> comparison between the condition number
+of the <em>original</em> design matrix and that of the IRLS-weighted
+information matrix, used to tell apart ordinary collinearity among the
+explanatory variables from <em>ML-collinearity</em> (see below). This
+vignette is the package’s complete guide; see
+<code><a href="../articles/multiCollglm.html">vignette("multiCollglm")</a></code> any time you need to come back to
+it.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -166,13 +173,107 @@ argument that switches between five published (or, for
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; CN (NC_MS) (eigenvalue scale): 192963.4257</span></span>
 <span><span class="co">#&gt; sqrt(CN) (NC_MS) (classical, singular-value scale): 439.2760</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th><code>method</code></th>
+<th>Transformation</th>
+<th>Comments</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>"RAW"</code></td>
+<td>None at all: eigenvalues of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mo>′</mo></msup><mover><mi>W</mi><mo accent="true">̂</mo></mover><mi>X</mi></mrow><annotation encoding="application/x-tex">X'\hat{W}X</annotation></semantics></math>
+directly (intercept included, no centering, no scaling). The plain
+baseline against which the other four can be judged – usually dominated
+by however differently-scaled the explanatory variables happen to
+be.</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><code>"MP"</code></td>
+<td>
+<span class="citation">Mackinnon and Puterman (1989)</span>. The
+<em>original</em> explanatory variables (intercept included) are
+rescaled to unit Euclidean length with <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::lu()</code></a>
+<strong>before</strong> fitting.</td>
+<td>A GLM’s IRLS weights at convergence are invariant to any linear
+rescaling of <code>X</code> – but done explicitly to mirror the original
+definition.</td>
+</tr>
+<tr class="odd">
+<td><code>"MS"</code></td>
+<td>
+<span class="citation">Marx and Smith (1990)</span>. The explanatory
+variables (excluding the intercept, if any) are <strong>centered on
+their own mean and rescaled to unit Euclidean length before
+fitting</strong>, with an ordinary intercept re-added if the original
+model had one.</td>
+<td>Unlike <code>"MP"</code>, centering shifts the fitted values
+themselves, so the refit is genuinely different from
+<code>model</code>.</td>
+</tr>
+<tr class="even">
+<td><code>"WS"</code></td>
+<td>
+<span class="citation">Weissfeld and Sereika (1991)</span>, the
+package default. The GLM is fit on the original variables and the
+IRLS-weighted information matrix is scaled to unit column length
+<em>afterwards</em> (no centering).</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><code>"OZ"</code></td>
+<td>
+<span class="citation">Ozkale (2021)</span>. Same as
+<code>"WS"</code>, but the IRLS-weighted design matrix is additionally
+<strong>centered</strong> before being scaled to unit length. If
+<code>model</code> has an intercept, its column is
+<strong>dropped</strong> before centering/scaling (every worked example
+in Ozkale 2019, Sec. 5, fits without an intercept term).</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>A few things worth knowing before picking one:</p>
+<ul>
+<li>
+<strong><code>"MP"</code> requires the <code>multiColl</code>
+package</strong> (<code>Suggests</code>, not a hard dependency); it
+errors with an informative message if it isn’t installed.</li>
+<li>
+<strong><code>"MS"</code> can fail to converge for a model with no
+intercept.</strong> Centering removes every column’s mean. For some
+family/link combinations (most notably Gamma with the inverse link,
+which needs strictly positive fitted values) the refit’s IRLS iteration
+can diverge. When that happens you get an informative error explaining
+why this is expected for that combination and is not a bug: <span class="citation">Marx and Smith (1990)</span> developed the method for
+logistic regression models, which ordinarily do include an intercept. If
+you hit this, use <code>"WS"</code> or <code>"OZ"</code> for that
+particular model instead.</li>
+<li>
+<strong>Centering an IRLS-weighted design matrix that includes an
+intercept can leave it exactly rank-deficient</strong> for <em>some</em>
+family/link combinations (for example the Gamma family with its
+canonical (inverse) link specifically – <code>sqrt(w) * eta</code> is
+exactly 1 for every observation, regardless of whether an intercept is
+present). <code>"OZ"</code> sidesteps this for most families by dropping
+the intercept before centering, but for Gamma-inverse the singularity is
+structural either way and <code>NC_OZ</code> will then legitimately come
+back as <code>Inf</code> with a warning. See the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-nitrogen.html"><code>Nitrogen</code>
+reproduction article</a> for a worked example.</li>
+<li>Leave <code>method = NULL</code> (the default) to keep using
+<code>center</code>/<code>scale</code> directly, exactly as in earlier
+versions of this function – see the next section.</li>
+</ul>
 <p><code>"MP"</code> <span class="citation">(Mackinnon and Puterman
 1989)</span> additionally requires the <code>multiColl</code> package.
-See <code><a href="../reference/condition_number.html">?condition_number</a></code> and the package’s <a href="https://github.com/cbgarciaugr/multiCollglm#condition-number-methods-method-argument" class="external-link">README</a>
-for the full description of each method, and for the caveats around
-<code>"MS"</code> (which can fail to converge for a no-intercept model)
-and <code>"OZ"</code> (which can legitimately return <code>Inf</code>
-for a Gamma model with the canonical inverse link).</p>
+See <code><a href="../reference/condition_number.html">?condition_number</a></code> for the full argument reference.</p>
 </div>
 <div class="section level2">
 <h2 id="changing-the-data-transformation">Changing the data transformation<a class="anchor" aria-label="anchor" href="#changing-the-data-transformation"></a>
@@ -199,6 +300,12 @@ scaling), or a numeric vector of per-column divisors.</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; CN (eigenvalue scale): 10123.1410</span></span>
 <span><span class="co">#&gt; sqrt(CN) (classical, singular-value scale): 100.6138</span></span></code></pre></div>
+<p><code>scale = TRUE</code> rescales every eigenvalue by the same
+factor (<code>nrow(X) - 1</code>) relative to the default
+<code>scale = "unit"</code>, so <code>CN</code> and
+<code>sqrt(CN)</code> are unaffected; <code>scale = FALSE</code> or a
+custom numeric vector generally do change them, since the columns are no
+longer put on a comparable scale.</p>
 <p><strong>Do not use <code>center = TRUE</code></strong> on an
 intercept model unless you know what you are doing: for a canonical-link
 GLM, the IRLS-weighted design matrix satisfies
@@ -266,13 +373,41 @@ function.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Collinearity in X (sqrt(CN)_X &gt; 30): YES</span></span>
 <span><span class="co">#&gt; ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): no</span></span></code></pre></div>
-<p>A model is flagged with <code>ml_collinearity = TRUE</code> only when
-both the ratio and <code>sqrt(CN)</code> of the information matrix
-exceed their thresholds (5 and 30 by default); see
-<code><a href="../reference/ml_collinearity.html">?ml_collinearity</a></code> and the package’s <a href="https://github.com/cbgarciaugr/multiCollglm#ml-collinearity-lesaffre-and-marx-1993" class="external-link">README</a>
-for the full rationale, and the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html"><code>LeeCancer</code>
-reproduction article</a> for Lesaffre and Marx’s own worked example,
-reproduced exactly.</p>
+<p><code>kappa_x</code> (<code>sqrt(CN)</code> of <code>X</code>) is
+obtained via <a href="https://cran.r-project.org/package=multiColl" class="external-link"><code>multiColl::CNs()</code></a>:
+<code>CNs(X)</code> returns a list with <code>CN1</code> (“Condition
+Number without intercept”) and <code>CN2</code> (“Condition Number with
+intercept”); since <code>kappa_X</code> standardizes <code>X</code>
+<em>including</em> the constant vector, <code>CNs(X)$CN2</code> is the
+one used.</p>
+<pre><code>ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+
+sqrt(CN) of X (original design matrix, multiColl::CNs(X)$CN2): 190.7765
+sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542
+ratio (sqrt(CN)_W / sqrt(CN)_X): 1.7295
+
+Collinearity in X (sqrt(CN)_X &gt; 30): YES
+ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): no</code></pre>
+<p>(the printed example above is Lesaffre and Marx’s own Lee
+cancer-remission model, reproduced exactly in the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html"><code>LeeCancer</code>
+reproduction article</a>.)</p>
+<p>Following Lesaffre and Marx (1993, Sec. 4.2), a model is flagged with
+<code>ml_collinearity = TRUE</code> only when <strong>both</strong> the
+ratio <code>sqrt(CN)_W / sqrt(CN)_X</code> exceeds
+<code>ratio_threshold</code> (default 5) <strong>and</strong>
+<code>sqrt(CN)_W</code> itself exceeds <code>kappa_threshold</code>
+(default 30) – a high ratio by itself, with a small
+<code>sqrt(CN)_W</code>, does not indicate an ill-conditioned
+information matrix to begin with. Separately,
+<code>sqrt(CN)_X &gt; kappa_threshold</code> flags ordinary collinearity
+among the explanatory variables (<code>collinearity_x</code>); if both
+flags are set and the ratio is close to 1, both types of collinearity
+are simultaneously present. <code><a href="../reference/ml_collinearity.html">ml_collinearity()</a></code> also has
+<code>glmnet</code>/<code>cv.glmnet</code> methods, refitting on the
+active set exactly as the other three diagnostics do. <strong>Requires
+the <code>multiColl</code> package</strong> (<code>Suggests</code>, not
+a hard dependency). See <code><a href="../reference/ml_collinearity.html">?ml_collinearity</a></code> for the full
+argument reference.</p>
 </div>
 <div class="section level2">
 <h2 id="beyond-this-guide">Beyond this guide<a class="anchor" aria-label="anchor" href="#beyond-this-guide"></a>
@@ -303,11 +438,27 @@ Mackinnon, M. J., and M. L. Puterman. 1989. <span>“Collinearity in
 Generalized Linear Models.”</span> <em>Communications in Statistics -
 Theory and Methods</em> 18 (9): 3463–72. <a href="https://doi.org/10.1080/03610928908830102" class="external-link">https://doi.org/10.1080/03610928908830102</a>.
 </div>
+<div id="ref-marx1990" class="csl-entry">
+Marx, B. D., and E. P. Smith. 1990. <span>“Weighted Multicollinearity in
+Logistic Regression: Diagnostics and Biased Estimation Techniques with
+an Example from Lake Acidification.”</span> <em>Canadian Journal of
+Fisheries and Aquatic Sciences</em> 47 (6): 1128–35. <a href="https://doi.org/10.1139/f90-131" class="external-link">https://doi.org/10.1139/f90-131</a>.
+</div>
+<div id="ref-ozkale2021" class="csl-entry">
+Ozkale, M. R. 2021. <span>“The Red Indicator and Corrected VIFs in
+Generalized Linear Models.”</span> <em>Communications in Statistics -
+Simulation and Computation</em> 50 (12): 4144–70. <a href="https://doi.org/10.1080/03610918.2019.1639740" class="external-link">https://doi.org/10.1080/03610918.2019.1639740</a>.
+</div>
 <div id="ref-salmeron2025" class="csl-entry">
 Salmerón, R., C. B. García, and J. García. 2025. <span>“A Redefined
 Variance Inflation Factor: Overcoming the Limitations of the Variance
 Inflation Factor.”</span> <em>Computational Economics</em> 65: 337–63.
 <a href="https://doi.org/10.1007/s10614-024-10575-8" class="external-link">https://doi.org/10.1007/s10614-024-10575-8</a>.
+</div>
+<div id="ref-weissfeld1991" class="csl-entry">
+Weissfeld, L. A., and S. M. Sereika. 1991. <span>“A Multicollinearity
+Diagnostic for Generalized Linear Models.”</span> <em>Communications in
+Statistics - Theory and Methods</em> 20 (4): 1183–98. <a href="https://doi.org/10.1080/03610929108830558" class="external-link">https://doi.org/10.1080/03610929108830558</a>.
 </div>
 </div>
 </div>
