@@ -5,7 +5,19 @@
 \alias{LeeCancer}
 \title{Lee (1974) cancer remission data}
 \format{
-An object of class \code{data.frame} with 27 rows and 7 columns.
+A data frame with 27 rows and 7 columns:
+\describe{
+\item{y}{Complete remission indicator (1 = complete remission,
+0 = incomplete remission).}
+\item{x1}{CELL, cellularity index.}
+\item{x2}{SMEAR, smear index.}
+\item{x3}{INFIL, infiltrate index.}
+\item{x4}{LI, labeling index.}
+\item{x5}{BLAST, percentage of blast cells.}
+\item{x6}{TEMP, highest body temperature (recorded on a /100 scale,
+as in the original source; some reproduction articles multiply it
+back by 100 to match a paper's own units).}
+}
 }
 \source{
 Lee, E.T. (1974). A computer program for linear logistic
@@ -25,20 +37,6 @@ Ozkale (2019) and others; also distributed as the \code{Remission} dataset
 in SAS/STAT example documentation. Cross-checked against the SAS
 documentation page for this example and against the original SAS
 \code{datalines}: exact match.
-}
-\details{
-\describe{
-\item{y}{Complete remission indicator (1 = complete remission,
-0 = incomplete remission).}
-\item{x1}{CELL, cellularity index.}
-\item{x2}{SMEAR, smear index.}
-\item{x3}{INFIL, infiltrate index.}
-\item{x4}{LI, labeling index.}
-\item{x5}{BLAST, percentage of blast cells.}
-\item{x6}{TEMP, highest body temperature (recorded on a /100 scale,
-as in the original source; some reproduction articles multiply it
-back by 100 to match a paper's own units).}
-}
 }
 \examples{
 data(LeeCancer)

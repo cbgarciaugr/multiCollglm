@@ -5,7 +5,14 @@
 \alias{Mine}
 \title{Coal mine roof-fracture data}
 \format{
-An object of class \code{data.frame} with 44 rows and 5 columns.
+A data frame with 44 rows and 5 columns:
+\describe{
+\item{y}{Number of roof fractures (count response).}
+\item{x1}{Inner burden thickness.}
+\item{x2}{Percentage extraction of the previously mined lower seam.}
+\item{x3}{Lower seam height.}
+\item{x4}{Time since the mine was opened.}
+}
 }
 \source{
 Myers, R.H. (1990). \emph{Classical and Modern Regression with
@@ -23,14 +30,6 @@ published count-data GLM collinearity illustrations (Poisson,
 Conway-Maxwell-Poisson, Bell and discrete-Weibull regressions).
 }
 \details{
-\describe{
-\item{y}{Number of roof fractures (count response).}
-\item{x1}{Inner burden thickness.}
-\item{x2}{Percentage extraction of the previously mined lower seam.}
-\item{x3}{Lower seam height.}
-\item{x4}{Time since the mine was opened.}
-}
-
 Two transcription errors present in some circulating copies of this
 dataset -- row 30 with \code{y = 22} instead of \code{y = 2}, and row 36 with
 \code{x1 = 0} instead of \code{x1 = 80} -- have been corrected here after

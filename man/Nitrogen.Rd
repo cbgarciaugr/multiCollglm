@@ -5,7 +5,15 @@
 \alias{Nitrogen}
 \title{Nitrogen dioxide air-pollution data (Chatterjee and Hadi 1988)}
 \format{
-An object of class \code{data.frame} with 25 rows and 5 columns.
+A data frame with 25 rows and 5 columns:
+\describe{
+\item{y}{Nitrogen dioxide concentration, in parts per hundred million
+(p.p.h.m.).}
+\item{x1}{Mean wind speed, in miles per hour (m.p.h.).}
+\item{x2}{Maximum temperature, in degrees Fahrenheit.}
+\item{x3}{Insolation, in langleys per day.}
+\item{x4}{Stability factor, in degrees Fahrenheit.}
+}
 }
 \source{
 Chatterjee, S. and Hadi, A.S. (1988). \emph{Sensitivity Analysis
@@ -24,15 +32,6 @@ no observation 9 reported: the dataset actually has only 25
 observations, which is what is included here.
 }
 \details{
-\describe{
-\item{y}{Nitrogen dioxide concentration, in parts per hundred million
-(p.p.h.m.).}
-\item{x1}{Mean wind speed, in miles per hour (m.p.h.).}
-\item{x2}{Maximum temperature, in degrees Fahrenheit.}
-\item{x3}{Insolation, in langleys per day.}
-\item{x4}{Stability factor, in degrees Fahrenheit.}
-}
-
 Used in \code{\link[=condition_number]{condition_number()}}'s reproduction article for a GLM with a
 Gamma family and canonical (inverse) link, where it also illustrates a
 structural singularity: for that family/link combination,

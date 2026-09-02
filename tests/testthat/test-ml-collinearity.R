@@ -22,6 +22,16 @@ test_that("ml_collinearity.glm reproduces Lesaffre and Marx's (1993) own worked 
   expect_true(res$collinearity_x)
   expect_false(res$ml_collinearity)
   expect_lt(res$ratio_wx, 5)
+
+  # Regression guard: CNs(X) returns a list here (3+ columns), with the
+  # "without intercept" value first and "with intercept" second (the names
+  # are descriptive strings, not "CN1"/"CN2"). kappa_x must come from the
+  # second element (Lesaffre and Marx (1993) standardize X *including* the
+  # constant vector), not the first. Assert the two disagree here so a
+  # future regression back to the first element fails loudly.
+  cns_x <- multiColl::CNs(model.matrix(mod))
+  expect_false(isTRUE(all.equal(cns_x[[1]], cns_x[[2]])))
+  expect_equal(res$kappa_x, as.numeric(cns_x[[2]]))
 })
 
 test_that("ml_collinearity.glm flags ML-collinearity when the ratio and kappa_W thresholds are both exceeded", {

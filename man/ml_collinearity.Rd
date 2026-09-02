@@ -59,7 +59,7 @@ it can also be \code{"lambda.min"} or \code{"lambda.1se"}.}
 \item{ratio_threshold}{Threshold for \code{ratio_wx} above which the ratio is
 considered high (default 5, as suggested by Lesaffre and Marx, 1993).}
 
-\item{kappa_threshold}{Threshold for \code{sqrt(CN)_W}/\code{sqrt(CN)_X} above
+\item{kappa_threshold}{Threshold for \verb{sqrt(CN)_W}/\verb{sqrt(CN)_X} above
 which the corresponding condition number is considered to indicate
 ill-conditioning (default 30, as suggested by Lesaffre and Marx, 1993,
 following Mackinnon and Puterman, 1989 and the classical Belsley, Kuh
@@ -68,12 +68,12 @@ and Welsch, 1980 rule of thumb on the \code{sqrt(CN)} scale).}
 \value{
 An object of class \code{multicollglm_mlcoll} with \code{kappa_x}
 (\code{sqrt(CN)} of the original design matrix \code{X}, via
-\code{multiColl::CNs(X)[1]}), \code{kappa_w} (\code{sqrt(CN)} of the
+\code{multiColl::CNs(X)}, the "with intercept" condition number),
+\code{kappa_w} (\code{sqrt(CN)} of the
 MacKinnon-Puterman information matrix, i.e.
 \code{condition_number(model, method = "MP")$condition_index}), \code{ratio_wx}
 (\code{kappa_w / kappa_x}), the two thresholds used (\code{ratio_threshold},
-\code{kappa_threshold}), and the logical flags \code{collinearity_x} (\code{kappa_x >
-kappa_threshold}) and \code{ml_collinearity} (\code{ratio_wx > ratio_threshold}
+\code{kappa_threshold}), and the logical flags \code{collinearity_x} (\code{kappa_x > kappa_threshold}) and \code{ml_collinearity} (\code{ratio_wx > ratio_threshold}
 and \code{kappa_w > kappa_threshold}).
 }
 \description{
@@ -85,22 +85,30 @@ the explanatory variables, but instead arises from the combination of
 the response, the fitted coefficients and the link function. To tell
 the two apart they compare \code{sqrt(CN)} of the original (unweighted)
 design matrix \code{X} against \code{sqrt(CN)} of the IRLS-weighted information
-matrix under Mackinnon and Puterman's (1989) definition (\code{method =
-"MP"}; both quantities standardize the columns of \code{X}, including the
+matrix under Mackinnon and Puterman's (1989) definition (\code{method = "MP"}; both quantities standardize the columns of \code{X}, including the
 intercept, to unit length first).
 }
 \details{
 \code{ml_collinearity()} computes \code{sqrt(CN)} of \code{X} with
-\code{\link[multiColl:CNs]{multiColl::CNs()}} (\code{CNs(X)[1]}, following Lesaffre and Marx, 1993,
-Sec. 4.2's own recommendation) and \code{sqrt(CN)} of the MacKinnon-Puterman
-information matrix with \code{condition_number(model, method = "MP")}, then
-forms their ratio, \code{ratio_wx = sqrt(CN)_W / sqrt(CN)_X}. Following
+\code{\link[multiColl:CNs]{multiColl::CNs()}}, following Lesaffre and Marx (1993, Sec. 4.2)'s own
+recommendation. \code{CNs(X)} (with \code{X} including the intercept column)
+returns a list of two elements, the condition number without and with
+the intercept (in that order; when \code{X} has only one regressor besides
+the intercept, it instead returns a bare numeric scalar, the
+with-intercept value, since the without-intercept quantity is undefined
+for a single column). Since Lesaffre and Marx's \code{kappa_X} is explicitly
+computed on \code{X} \strong{with} the constant vector standardized to unit
+length along with the rest, this uses the with-intercept value, which
+reproduces Lesaffre and Marx's (1993) own published \code{kappa_X = 190.78}
+exactly for their Lee cancer-remission example, while the
+without-intercept value does not. \code{sqrt(CN)} of the MacKinnon-Puterman
+information matrix is computed with \code{condition_number(model, method = "MP")}, and the two are combined into their ratio, \verb{ratio_wx = sqrt(CN)_W / sqrt(CN)_X}. Following
 Lesaffre and Marx (1993, Sec. 4.2), a model is flagged with
 ML-collinearity only when \strong{both} \code{ratio_wx > ratio_threshold}
-(default 5) \strong{and} \code{sqrt(CN)_W > kappa_threshold} (default 30): the
+(default 5) \strong{and} \verb{sqrt(CN)_W > kappa_threshold} (default 30): the
 ratio alone is not sufficient, since a high ratio with a small
-\code{sqrt(CN)_W} does not indicate an ill-conditioned information matrix to
-begin with. Separately, \code{sqrt(CN)_X > kappa_threshold} flags ordinary
+\verb{sqrt(CN)_W} does not indicate an ill-conditioned information matrix to
+begin with. Separately, \verb{sqrt(CN)_X > kappa_threshold} flags ordinary
 collinearity among the explanatory variables. If both flags are set and
 the ratio is close to 1, Lesaffre and Marx (1993) note that both types
 of collinearity are simultaneously present.

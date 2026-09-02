@@ -13,10 +13,21 @@
 #' intercept, to unit length first).
 #'
 #' `ml_collinearity()` computes `sqrt(CN)` of `X` with
-#' [multiColl::CNs()] (`CNs(X)[1]`, following Lesaffre and Marx, 1993,
-#' Sec. 4.2's own recommendation) and `sqrt(CN)` of the MacKinnon-Puterman
-#' information matrix with `condition_number(model, method = "MP")`, then
-#' forms their ratio, `ratio_wx = sqrt(CN)_W / sqrt(CN)_X`. Following
+#' [multiColl::CNs()], following Lesaffre and Marx (1993, Sec. 4.2)'s own
+#' recommendation. `CNs(X)` (with `X` including the intercept column)
+#' returns a list of two elements, the condition number without and with
+#' the intercept (in that order; when `X` has only one regressor besides
+#' the intercept, it instead returns a bare numeric scalar, the
+#' with-intercept value, since the without-intercept quantity is undefined
+#' for a single column). Since Lesaffre and Marx's `kappa_X` is explicitly
+#' computed on `X` **with** the constant vector standardized to unit
+#' length along with the rest, this uses the with-intercept value, which
+#' reproduces Lesaffre and Marx's (1993) own published `kappa_X = 190.78`
+#' exactly for their Lee cancer-remission example, while the
+#' without-intercept value does not. `sqrt(CN)` of the MacKinnon-Puterman
+#' information matrix is computed with `condition_number(model, method =
+#' "MP")`, and the two are combined into their ratio, `ratio_wx =
+#' sqrt(CN)_W / sqrt(CN)_X`. Following
 #' Lesaffre and Marx (1993, Sec. 4.2), a model is flagged with
 #' ML-collinearity only when **both** `ratio_wx > ratio_threshold`
 #' (default 5) **and** `sqrt(CN)_W > kappa_threshold` (default 30): the
@@ -50,7 +61,8 @@
 #'
 #' @return An object of class `multicollglm_mlcoll` with `kappa_x`
 #'   (`sqrt(CN)` of the original design matrix `X`, via
-#'   `multiColl::CNs(X)[1]`), `kappa_w` (`sqrt(CN)` of the
+#'   `multiColl::CNs(X)`, the "with intercept" condition number),
+#'   `kappa_w` (`sqrt(CN)` of the
 #'   MacKinnon-Puterman information matrix, i.e.
 #'   `condition_number(model, method = "MP")$condition_index`), `ratio_wx`
 #'   (`kappa_w / kappa_x`), the two thresholds used (`ratio_threshold`,
@@ -99,7 +111,19 @@ ml_collinearity.glm <- function(model, ratio_threshold = 5, kappa_threshold = 30
     stop("ml_collinearity() needs at least two columns in the design matrix.", call. = FALSE)
   }
 
-  kappa_x <- as.numeric(multiColl::CNs(X)[1])
+  # CNs(X) (X including the intercept column) returns a list of two named
+  # elements -- "Condition Number without intercept" and "Condition Number
+  # with intercept" (in that order; the names are descriptive strings, not
+  # "CN1"/"CN2") -- when X has 3+ columns, but a bare numeric scalar when X
+  # has only 2 columns (intercept + a single regressor), since dropping the
+  # intercept then leaves a single column for which collinearity is
+  # undefined. Lesaffre and Marx's (1993) kappa_X standardizes X
+  # *including* the constant vector, i.e. the "with intercept" value -- the
+  # second list element, or the lone scalar in the 2-column case. Using the
+  # second element reproduces their own published kappa_X = 190.78 for the
+  # Lee cancer-remission example; the "without intercept" value does not.
+  cns_x <- multiColl::CNs(X)
+  kappa_x <- if (is.list(cns_x)) as.numeric(cns_x[[2]]) else as.numeric(cns_x[1])
 
   cn_w <- condition_number(model, method = "MP")
   kappa_w <- cn_w$condition_index
@@ -167,7 +191,7 @@ print.multicollglm_mlcoll <- function(x, digits = 4, ...) {
     }
   }
 
-  cat(sprintf("\nsqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): %.*f\n", digits, x$kappa_x))
+  cat(sprintf("\nsqrt(CN) of X (original design matrix, multiColl::CNs(X), with intercept): %.*f\n", digits, x$kappa_x))
   cat(sprintf("sqrt(CN) of W (MacKinnon-Puterman information matrix, method = \"MP\"): %.*f\n", digits, x$kappa_w))
   cat(sprintf("ratio (sqrt(CN)_W / sqrt(CN)_X): %.*f\n", digits, x$ratio_wx))
 

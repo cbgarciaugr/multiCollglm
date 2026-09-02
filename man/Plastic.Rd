@@ -5,7 +5,15 @@
 \alias{Plastic}
 \title{Plastic plywood manufacturing process data}
 \format{
-An object of class \code{data.frame} with 100 rows and 5 columns.
+A data frame with 100 rows and 5 columns:
+\describe{
+\item{Y}{Number of surface defects per laminated-plywood area
+(count response).}
+\item{X1}{Volumetric shrinkage, in percent.}
+\item{X2}{Assembly time, in minutes.}
+\item{X3}{Wood density, in g/cm^3.}
+\item{X4}{Drying temperature, in degrees Celsius.}
+}
 }
 \source{
 Marcondes Filho, D. and Sant'Anna, A.M.P. (2016). Statistical
@@ -24,16 +32,6 @@ input variables show strong, well-documented pairwise correlations
 (shrinkage with assembly time; density with drying temperature).
 Verified byte-identical (up to formatting) against the values reported
 in the 2016 primary source.
-}
-\details{
-\describe{
-\item{Y}{Number of surface defects per laminated-plywood area
-(count response).}
-\item{X1}{Volumetric shrinkage, in percent.}
-\item{X2}{Assembly time, in minutes.}
-\item{X3}{Wood density, in g/cm^3.}
-\item{X4}{Drying temperature, in degrees Celsius.}
-}
 }
 \examples{
 data(Plastic)

@@ -17,12 +17,22 @@ Lesaffre and Marx (1993), comparing the condition number of the
 original design matrix against that of the IRLS-weighted information
 matrix to distinguish ordinary collinearity from ML-collinearity.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/cbgarciaugr/multiCollglm}
+  \item \url{https://cbgarciaugr.github.io/multiCollglm/}
+  \item Report bugs at \url{https://github.com/cbgarciaugr/multiCollglm/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Catalina Garcia Garcia \email{cbgarcia@go.ugr.es}
 
 Authors:
 \itemize{
   \item Catalina Garcia Garcia \email{cbgarcia@go.ugr.es}
+  \item Roman Salmeron Gomez
 }
 
 }
