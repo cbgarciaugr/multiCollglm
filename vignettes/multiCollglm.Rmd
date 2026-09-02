@@ -21,7 +21,13 @@ number, Belsley-Kuh-Welsch decomposition, and the Redefined Variance
 Inflation Factor, RVIF [@salmeron2025]) to any family and link function. All three are
 computed on the design matrix weighted by the IRLS weights at
 convergence and, by default, scaled to unit length by column (without
-centering).
+centering). `ml_collinearity()` adds a fourth, complementary diagnostic:
+Lesaffre and Marx's [-@lesaffre1993] comparison between the condition
+number of the *original* design matrix and that of the IRLS-weighted
+information matrix, used to tell apart ordinary collinearity among the
+explanatory variables from *ML-collinearity* (see below). This vignette
+is the package's complete guide; see `vignette("multiCollglm")` any time
+you need to come back to it.
 
 ## Installation
 
@@ -73,13 +79,46 @@ condition_number(mod, method = "OZ")  # centered and unit-scaled [@ozkale2021]
 condition_number(mod, method = "MS")  # centered, unit-scaled, then refit [@marx1990]
 ```
 
+| `method` | Transformation | Comments |
+|---|---|---|
+| `"RAW"` | None at all: eigenvalues of $X'\hat{W}X$ directly (intercept included, no centering, no scaling). The plain baseline against which the other four can be judged -- usually dominated by however differently-scaled the explanatory variables happen to be. |  |
+| `"MP"` | @mackinnon1989. The *original* explanatory variables (intercept included) are rescaled to unit Euclidean length with [`multiColl::lu()`](https://cran.r-project.org/package=multiColl) **before** fitting. | A GLM's IRLS weights at convergence are invariant to any linear rescaling of `X` -- but done explicitly to mirror the original definition. |
+| `"MS"` | @marx1990. The explanatory variables (excluding the intercept, if any) are **centered on their own mean and rescaled to unit Euclidean length before fitting**, with an ordinary intercept re-added if the original model had one. | Unlike `"MP"`, centering shifts the fitted values themselves, so the refit is genuinely different from `model`. |
+| `"WS"` | @weissfeld1991, the package default. The GLM is fit on the original variables and the IRLS-weighted information matrix is scaled to unit column length *afterwards* (no centering). |  |
+| `"OZ"` | @ozkale2021. Same as `"WS"`, but the IRLS-weighted design matrix is additionally **centered** before being scaled to unit length. If `model` has an intercept, its column is **dropped** before centering/scaling (every worked example in Ozkale 2019, Sec. 5, fits without an intercept term). |  |
+
+A few things worth knowing before picking one:
+
+- **`"MP"` requires the `multiColl` package** (`Suggests`, not a hard
+  dependency); it errors with an informative message if it isn't
+  installed.
+- **`"MS"` can fail to converge for a model with no intercept.**
+  Centering removes every column's mean. For some family/link
+  combinations (most notably Gamma with the inverse link, which needs
+  strictly positive fitted values) the refit's IRLS iteration can
+  diverge. When that happens you get an informative error explaining why
+  this is expected for that combination and is not a bug: @marx1990
+  developed the method for logistic regression models, which ordinarily
+  do include an intercept. If you hit this, use `"WS"` or `"OZ"` for that
+  particular model instead.
+- **Centering an IRLS-weighted design matrix that includes an intercept
+  can leave it exactly rank-deficient** for *some* family/link
+  combinations (for example the Gamma family with its canonical
+  (inverse) link specifically -- `sqrt(w) * eta` is exactly 1 for every
+  observation, regardless of whether an intercept is present). `"OZ"`
+  sidesteps this for most families by dropping the intercept before
+  centering, but for Gamma-inverse the singularity is structural either
+  way and `NC_OZ` will then legitimately come back as `Inf` with a
+  warning. See the [`Nitrogen` reproduction
+  article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-nitrogen.html)
+  for a worked example.
+- Leave `method = NULL` (the default) to keep using `center`/`scale`
+  directly, exactly as in earlier versions of this function -- see the
+  next section.
+
 `"MP"` [@mackinnon1989] additionally requires the
-`multiColl` package. See `?condition_number` and the package's
-[README](https://github.com/cbgarciaugr/multiCollglm#condition-number-methods-method-argument)
-for the full description of each method, and for the caveats around
-`"MS"` (which can fail to converge for a no-intercept model) and `"OZ"`
-(which can legitimately return `Inf` for a Gamma model with the
-canonical inverse link).
+`multiColl` package. See `?condition_number` for the full argument
+reference.
 
 ## Changing the data transformation
 
@@ -97,6 +136,11 @@ own `scale()`:
 ```{r}
 condition_number(mod, scale = TRUE) # root-mean-square scaling instead of unit length
 ```
+
+`scale = TRUE` rescales every eigenvalue by the same factor (`nrow(X) -
+1`) relative to the default `scale = "unit"`, so `CN` and `sqrt(CN)` are
+unaffected; `scale = FALSE` or a custom numeric vector generally do
+change them, since the columns are no longer put on a comparable scale.
 
 **Do not use `center = TRUE`** on an intercept model unless you know what
 you are doing: for a canonical-link GLM, the IRLS-weighted design matrix
@@ -152,13 +196,42 @@ response, the fitted coefficients and the link function.
 ml_collinearity(mod)
 ```
 
-A model is flagged with `ml_collinearity = TRUE` only when both the
-ratio and `sqrt(CN)` of the information matrix exceed their thresholds
-(5 and 30 by default); see `?ml_collinearity` and the package's
-[README](https://github.com/cbgarciaugr/multiCollglm#ml-collinearity-lesaffre-and-marx-1993)
-for the full rationale, and the [`LeeCancer` reproduction
-article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html)
-for Lesaffre and Marx's own worked example, reproduced exactly.
+`kappa_x` (`sqrt(CN)` of `X`) is obtained via
+[`multiColl::CNs()`](https://cran.r-project.org/package=multiColl):
+`CNs(X)` returns a list with `CN1` ("Condition Number without
+intercept") and `CN2` ("Condition Number with intercept"); since
+`kappa_X` standardizes `X` *including* the constant vector, `CNs(X)$CN2`
+is the one used.
+
+```
+ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+
+sqrt(CN) of X (original design matrix, multiColl::CNs(X)$CN2): 190.7765
+sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542
+ratio (sqrt(CN)_W / sqrt(CN)_X): 1.7295
+
+Collinearity in X (sqrt(CN)_X > 30): YES
+ML-collinearity (ratio_wx > 5 and sqrt(CN)_W > 30): no
+```
+
+(the printed example above is Lesaffre and Marx's own Lee
+cancer-remission model, reproduced exactly in the [`LeeCancer`
+reproduction
+article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html).)
+
+Following Lesaffre and Marx (1993, Sec. 4.2), a model is flagged with
+`ml_collinearity = TRUE` only when **both** the ratio `sqrt(CN)_W /
+sqrt(CN)_X` exceeds `ratio_threshold` (default 5) **and** `sqrt(CN)_W`
+itself exceeds `kappa_threshold` (default 30) -- a high ratio by itself,
+with a small `sqrt(CN)_W`, does not indicate an ill-conditioned
+information matrix to begin with. Separately, `sqrt(CN)_X >
+kappa_threshold` flags ordinary collinearity among the explanatory
+variables (`collinearity_x`); if both flags are set and the ratio is
+close to 1, both types of collinearity are simultaneously present.
+`ml_collinearity()` also has `glmnet`/`cv.glmnet` methods, refitting on
+the active set exactly as the other three diagnostics do. **Requires
+the `multiColl` package** (`Suggests`, not a hard dependency). See
+`?ml_collinearity` for the full argument reference.
 
 ## Beyond this guide
 
