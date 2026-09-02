@@ -12,6 +12,16 @@ at convergence and scaled to unit length by column (without centering).
 - [`rvif_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/rvif_diagnostics.md)
   : Redefined Variance Inflation Factor (RVIF) diagnostics
 
+## ML-collinearity
+
+Compares the condition number of the original design matrix against that
+of the IRLS-weighted information matrix, following Lesaffre and Marx
+(1993), to tell apart ordinary collinearity among the explanatory
+variables from ML-collinearity.
+
+- [`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+  : ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+
 ## Example datasets
 
 Real data used in the reproduction articles (see below).

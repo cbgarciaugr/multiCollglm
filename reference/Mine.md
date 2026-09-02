@@ -58,7 +58,7 @@ data(Mine)
 mod <- glm(y ~ x1 + x2 + x3 + x4, family = poisson(link = "log"),
            data = Mine)
 condition_number(mod, method = "WS")
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 4.1168 0.4495 0.3411 0.0874 0.0050
 #> 
 #> CN (NC_WS) (eigenvalue scale): 816.9398

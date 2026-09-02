@@ -24,6 +24,13 @@ weights, the package identifies the active set of variables at the given
 [`glm()`](https://rdrr.io/r/stats/glm.html) on them so the same
 diagnostics can be computed.
 
+[`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+implements a fourth, complementary diagnostic: Lesaffre and Marx’s
+(1993) comparison between the condition number of the *original* design
+matrix and that of the IRLS-weighted information matrix, used to tell
+apart ordinary collinearity among the explanatory variables from
+*ML-collinearity* (see below).
+
 See
 [`vignette("multiCollglm")`](https://cbgarciaugr.github.io/multiCollglm/articles/multiCollglm.md)
 for a getting-started guide, and the [package
@@ -225,6 +232,53 @@ eigenvalue scale used by
 (`sqrt(CN)` is simply the square root of `CN`, i.e.
 `condition_index = sqrt(condition_number)`). Both thresholds are
 adjustable via `index_threshold` and `proportion_threshold`.
+
+## ML-collinearity (Lesaffre and Marx, 1993)
+
+@lesaffre1993 distinguish two structurally different causes of an
+ill-conditioned information matrix in a GLM: ordinary collinearity among
+the explanatory variables, and *ML-collinearity* – ill-conditioning that
+is not attributable to the explanatory variables themselves, but to the
+combination of the response, the fitted coefficients and the link
+function. To tell them apart they compare `sqrt(CN)` of the *original*
+design matrix `X` (via
+[`multiColl::CNs()`](https://cran.r-project.org/package=multiColl),
+`CNs(X)[1]`) against `sqrt(CN)` of the IRLS-weighted information matrix
+under `method = "MP"` (Mackinnon and Puterman, 1989):
+
+``` r
+
+ml_collinearity(mod)
+```
+
+    ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+
+    sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 190.7765
+    sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542
+    ratio (sqrt(CN)_W / sqrt(CN)_X): 1.7295
+
+    Collinearity in X (sqrt(CN)_X > 30): YES
+    ML-collinearity (ratio_wx > 5 and sqrt(CN)_W > 30): no
+
+(the example above is Lesaffre and Marx’s (1993) own Lee
+cancer-remission model, reproduced exactly in the [`LeeCancer`
+reproduction
+article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html)).
+
+Following @lesaffre1993 (Sec. 4.2), a model is flagged with
+`ml_collinearity = TRUE` only when **both** the ratio
+`sqrt(CN)_W / sqrt(CN)_X` exceeds `ratio_threshold` (default 5) **and**
+`sqrt(CN)_W` itself exceeds `kappa_threshold` (default 30) – a high
+ratio by itself, with a small `sqrt(CN)_W`, does not indicate an
+ill-conditioned information matrix to begin with. Separately,
+`sqrt(CN)_X > kappa_threshold` flags ordinary collinearity among the
+explanatory variables (`collinearity_x`); if both flags are set and the
+ratio is close to 1, both types of collinearity are simultaneously
+present.
+[`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+also has `glmnet`/`cv.glmnet` methods, refitting on the active set
+exactly as the other three diagnostics do. **Requires the `multiColl`
+package** (`Suggests`, not a hard dependency).
 
 ## Example datasets
 

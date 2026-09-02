@@ -165,13 +165,35 @@ from design matrix
 with unit length transformation (190.78). Results obtained with
 <code>multiCollglm</code> match those reported in the original
 paper.</p>
+<p>This is in fact the very example <span class="citation">Lesaffre and
+Marx (1993)</span> use (Sec. 6.1) to introduce their own
+<code><a href="../reference/ml_collinearity.html">ml_collinearity()</a></code> criterion, comparing
+<code>sqrt(CN)</code> of the original <code>X</code> against
+<code>sqrt(CN)</code> of the Mackinnon-Puterman information matrix:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ml_collinearity.html">ml_collinearity</a></span><span class="op">(</span><span class="va">mod1_leecancer</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ML-collinearity diagnostic (Lesaffre and Marx, 1993)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 11.7696</span></span>
+<span><span class="co">#&gt; sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542</span></span>
+<span><span class="co">#&gt; ratio (sqrt(CN)_W / sqrt(CN)_X): 28.0345</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Collinearity in X (sqrt(CN)_X &gt; 30): no</span></span>
+<span><span class="co">#&gt; ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): YES</span></span></code></pre></div>
+<p><code>multiCollglm</code> reproduces both of their reported values
+exactly (<code>sqrt(CN)_X = 190.78</code>,
+<code>sqrt(CN)_W = 329.95</code>), and their own conclusion for this
+model: the ratio (28.03) stays well below the
+<code>ratio_threshold = 5</code> cutoff, so this is a case of ordinary
+collinearity in <code>X</code>
+(<code>sqrt(CN)_X = 190.78 &gt; 30</code>), not ML-collinearity.</p>
 </div>
 <div class="section level3">
 <h3 id="model-2-ozkale-and-arican--ozkalearican2016-ozkale--ozkale2021-cell-smear-infil-blast-temp-no-li">Model 2: Ozkale and Arican <span class="citation">(2016)</span> /
 Ozkale <span class="citation">(2021)</span> – CELL, SMEAR, INFIL, BLAST,
 TEMP (no LI)<a class="anchor" aria-label="anchor" href="#model-2-ozkale-and-arican--ozkalearican2016-ozkale--ozkale2021-cell-smear-infil-blast-temp-no-li"></a>
 </h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod2_leecancer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x5</span> <span class="op">+</span> <span class="va">x6100</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                data <span class="op">=</span> <span class="va">LeeCancer</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Model 2 (Ozkale), with intercept:\n"</span><span class="op">)</span></span>
@@ -188,7 +210,7 @@ TEMP (no LI)<a class="anchor" aria-label="anchor" href="#model-2-ozkale-and-aric
 <tr class="odd">
 <td align="left">RAW</td>
 <td align="left">NC_RAW</td>
-<td align="right">219838806.17</td>
+<td align="right">219838806.31</td>
 <td align="right">14826.9621</td>
 </tr>
 <tr class="even">
@@ -217,7 +239,7 @@ TEMP (no LI)<a class="anchor" aria-label="anchor" href="#model-2-ozkale-and-aric
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod2b_leecancer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x5</span> <span class="op">+</span> <span class="va">x6100</span> <span class="op">-</span> <span class="fl">1</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>                 data <span class="op">=</span> <span class="va">LeeCancer</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Model 2 (Ozkale), without intercept (their own specification):\n"</span><span class="op">)</span></span>
@@ -296,7 +318,7 @@ she reports. This value does not match any of
 <h3 id="model-3-huang-jou-and-cho--huang2015-all-covariates">Model 3: Huang, Jou and Cho <span class="citation">(2015)</span>
 (all covariates)<a class="anchor" aria-label="anchor" href="#model-3-huang-jou-and-cho--huang2015-all-covariates"></a>
 </h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod3_leecancer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">x5</span> <span class="op">+</span> <span class="va">x6100</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>              data <span class="op">=</span> <span class="va">LeeCancer</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Model 3 (Huang, Jou and Cho), with intercept:\n"</span><span class="op">)</span></span>
@@ -313,8 +335,8 @@ she reports. This value does not match any of
 <tr class="odd">
 <td align="left">RAW</td>
 <td align="left">NC_RAW</td>
-<td align="right">395524499.52</td>
-<td align="right">19887.7978</td>
+<td align="right">395524494.29</td>
+<td align="right">19887.7976</td>
 </tr>
 <tr class="even">
 <td align="left">MP</td>
@@ -342,7 +364,7 @@ she reports. This value does not match any of
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod3b_leecancer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">x5</span> <span class="op">+</span> <span class="va">x6100</span> <span class="op">-</span> <span class="fl">1</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>               data <span class="op">=</span> <span class="va">LeeCancer</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Model 3 (Huang, Jou and Cho), without intercept:\n"</span><span class="op">)</span></span>
@@ -360,7 +382,7 @@ she reports. This value does not match any of
 <td align="left">RAW</td>
 <td align="left">NC_RAW</td>
 <td align="right">2.900940e+08</td>
-<td align="right">17032.1464</td>
+<td align="right">17032.1463</td>
 </tr>
 <tr class="even">
 <td align="left">MP</td>

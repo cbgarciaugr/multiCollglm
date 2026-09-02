@@ -65,7 +65,7 @@ analysis. *Computer Programs in Biomedicine*, 4(2), 80-92.
 data(LeeCancer)
 mod <- glm(y ~ x1 + x4 + x6, family = binomial(), data = LeeCancer)
 condition_number(mod, method = "WS")
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 3.9034 0.0927 0.0038 0.0000
 #> 
 #> CN (NC_WS) (eigenvalue scale): 99311.0952

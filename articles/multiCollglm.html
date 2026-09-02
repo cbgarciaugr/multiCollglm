@@ -143,25 +143,25 @@ argument that switches between five published (or, for
 <span><span class="co">#&gt; CN (NC_RAW) (eigenvalue scale): 7557.9499</span></span>
 <span><span class="co">#&gt; sqrt(CN) (NC_RAW) (classical, singular-value scale): 86.9365</span></span>
 <span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MP"</span><span class="op">)</span>  <span class="co"># requires multiColl package</span></span>
-<span><span class="co">#&gt; Eigenvalues of X_lu'WX_lu (decreasing order):</span></span>
+<span><span class="co">#&gt; Eigenvalues of X_ul'WX_ul (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 143.5803  18.7623  14.5861   5.0021   0.0197</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; CN (NC_MP) (eigenvalue scale): 7271.5771</span></span>
 <span><span class="co">#&gt; sqrt(CN) (NC_MP) (classical, singular-value scale): 85.2735</span></span>
 <span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"WS"</span><span class="op">)</span>  <span class="co"># same as the default above, explicitly labeled</span></span>
-<span><span class="co">#&gt; Eigenvalues of X_unit'X_unit (decreasing order):</span></span>
+<span><span class="co">#&gt; Eigenvalues of (X'WX)_ul (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 3.2659 0.8814 0.6208 0.2315 0.0003</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; CN (NC_WS) (eigenvalue scale): 10123.1410</span></span>
 <span><span class="co">#&gt; sqrt(CN) (NC_WS) (classical, singular-value scale): 100.6138</span></span>
 <span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"OZ"</span><span class="op">)</span>  <span class="co"># centered and unit-scaled [@ozkale2021]</span></span>
-<span><span class="co">#&gt; Eigenvalues of X_unit'X_unit (decreasing order):</span></span>
+<span><span class="co">#&gt; Eigenvalues of (X'WX)_ulc (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 2.4718 0.8806 0.6473 0.0003</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; CN (NC_OZ) (eigenvalue scale): 7201.4286</span></span>
 <span><span class="co">#&gt; sqrt(CN) (NC_OZ) (classical, singular-value scale): 84.8612</span></span>
 <span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"MS"</span><span class="op">)</span>  <span class="co"># centered, unit-scaled, then refit [@marx1990]</span></span>
-<span><span class="co">#&gt; Eigenvalues of X_cu'WX_cu (decreasing order):</span></span>
+<span><span class="co">#&gt; Eigenvalues of X_ulc'WX_ulc (decreasing order):</span></span>
 <span><span class="co">#&gt; [1] 3816.0817   42.5254   18.0071   13.6069    0.0198</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; CN (NC_MS) (eigenvalue scale): 192963.4257</span></span>
@@ -245,6 +245,36 @@ adjustable via <code>index_threshold</code> and
 <code>proportion_threshold</code>.</p>
 </div>
 <div class="section level2">
+<h2 id="ml-collinearity">ML-collinearity<a class="anchor" aria-label="anchor" href="#ml-collinearity"></a>
+</h2>
+<p><code><a href="../reference/ml_collinearity.html">ml_collinearity()</a></code> implements the diagnostic of Lesaffre
+and Marx <span class="citation">(1993)</span>, which compares
+<code>sqrt(CN)</code> of the <em>original</em> design matrix (via
+<code><a href="https://rdrr.io/pkg/multiColl/man/CNs.html" class="external-link">multiColl::CNs()</a></code>) against <code>sqrt(CN)</code> of the
+IRLS-weighted information matrix under <code>method = "MP"</code>, to
+distinguish ordinary collinearity among the explanatory variables from
+<em>ML-collinearity</em>: ill-conditioning that instead arises from the
+combination of the response, the fitted coefficients and the link
+function.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ml_collinearity.html">ml_collinearity</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ML-collinearity diagnostic (Lesaffre and Marx, 1993)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 36.9284</span></span>
+<span><span class="co">#&gt; sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 85.2735</span></span>
+<span><span class="co">#&gt; ratio (sqrt(CN)_W / sqrt(CN)_X): 2.3092</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Collinearity in X (sqrt(CN)_X &gt; 30): YES</span></span>
+<span><span class="co">#&gt; ML-collinearity (ratio_wx &gt; 5 and sqrt(CN)_W &gt; 30): no</span></span></code></pre></div>
+<p>A model is flagged with <code>ml_collinearity = TRUE</code> only when
+both the ratio and <code>sqrt(CN)</code> of the information matrix
+exceed their thresholds (5 and 30 by default); see
+<code><a href="../reference/ml_collinearity.html">?ml_collinearity</a></code> and the package’s <a href="https://github.com/cbgarciaugr/multiCollglm#ml-collinearity-lesaffre-and-marx-1993" class="external-link">README</a>
+for the full rationale, and the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html"><code>LeeCancer</code>
+reproduction article</a> for Lesaffre and Marx’s own worked example,
+reproduced exactly.</p>
+</div>
+<div class="section level2">
 <h2 id="beyond-this-guide">Beyond this guide<a class="anchor" aria-label="anchor" href="#beyond-this-guide"></a>
 </h2>
 <p>This vignette covers the package’s basic usage. The <a href="https://cbgarciaugr.github.io/multiCollglm/articles/index.html">package
@@ -262,6 +292,11 @@ produces.</p>
 Belsley, D. A., E. Kuh, and R. E. Welsch. 1980. <em>Regression
 Diagnostics: Identifying Influential Data and Sources of
 Collinearity</em>. Wiley.
+</div>
+<div id="ref-lesaffre1993" class="csl-entry">
+Lesaffre, E., and B. D. Marx. 1993. <span>“Collinearity in Generalized
+Linear Regression.”</span> <em>Communications in Statistics - Theory and
+Methods</em> 22 (7): 1933–52. <a href="https://doi.org/10.1080/03610929308831126" class="external-link">https://doi.org/10.1080/03610929308831126</a>.
 </div>
 <div id="ref-mackinnon1989" class="csl-entry">
 Mackinnon, M. J., and M. L. Puterman. 1989. <span>“Collinearity in

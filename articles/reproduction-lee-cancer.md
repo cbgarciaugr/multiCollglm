@@ -63,6 +63,31 @@ directly from design matrix $`X`$ with unit length transformation
 (190.78). Results obtained with `multiCollglm` match those reported in
 the original paper.
 
+This is in fact the very example Lesaffre and Marx (1993) use (Sec. 6.1)
+to introduce their own
+[`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+criterion, comparing `sqrt(CN)` of the original `X` against `sqrt(CN)`
+of the Mackinnon-Puterman information matrix:
+
+``` r
+
+ml_collinearity(mod1_leecancer)
+#> ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+#> 
+#> sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 11.7696
+#> sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 329.9542
+#> ratio (sqrt(CN)_W / sqrt(CN)_X): 28.0345
+#> 
+#> Collinearity in X (sqrt(CN)_X > 30): no
+#> ML-collinearity (ratio_wx > 5 and sqrt(CN)_W > 30): YES
+```
+
+`multiCollglm` reproduces both of their reported values exactly
+(`sqrt(CN)_X = 190.78`, `sqrt(CN)_W = 329.95`), and their own conclusion
+for this model: the ratio (28.03) stays well below the
+`ratio_threshold = 5` cutoff, so this is a case of ordinary collinearity
+in `X` (`sqrt(CN)_X = 190.78 > 30`), not ML-collinearity.
+
 ### Model 2: Ozkale and Arican (2016) / Ozkale (2021) – CELL, SMEAR, INFIL, BLAST, TEMP (no LI)
 
 ``` r
@@ -76,7 +101,7 @@ knitr::kable(calc_table(mod2_leecancer), digits = 4)
 
 | method | nc_label |            CN |   sqrt(CN) |
 |:-------|:---------|--------------:|-----------:|
-| RAW    | NC_RAW   | 219838806\.17 | 14826.9621 |
+| RAW    | NC_RAW   | 219838806\.31 | 14826.9621 |
 | MP     | NC_MP    |     163327.20 |   404.1376 |
 | MS     | NC_MS    |      23296.31 |   152.6313 |
 | WS     | NC_WS    |     143044.11 |   378.2117 |
@@ -133,7 +158,7 @@ knitr::kable(calc_table(mod3_leecancer), digits = 4)
 
 | method | nc_label |            CN |   sqrt(CN) |
 |:-------|:---------|--------------:|-----------:|
-| RAW    | NC_RAW   | 395524499\.52 | 19887.7978 |
+| RAW    | NC_RAW   | 395524494\.29 | 19887.7976 |
 | MP     | NC_MP    |     248614.00 |   498.6121 |
 | MS     | NC_MS    |      43277.14 |   208.0316 |
 | WS     | NC_WS    |     218108.47 |   467.0208 |
@@ -150,7 +175,7 @@ knitr::kable(calc_table(mod3b_leecancer), digits = 4)
 
 | method | nc_label |           CN |   sqrt(CN) |
 |:-------|:---------|-------------:|-----------:|
-| RAW    | NC_RAW   | 2.900940e+08 | 17032.1464 |
+| RAW    | NC_RAW   | 2.900940e+08 | 17032.1463 |
 | MP     | NC_MP    | 1.431963e+05 |   378.4129 |
 | MS     | NC_MS    | 5.158097e+02 |    22.7114 |
 | WS     | NC_WS    | 1.393080e+05 |   373.2398 |

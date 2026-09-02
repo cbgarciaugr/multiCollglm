@@ -54,9 +54,9 @@ data(Plastic)
 mod <- glm(Y ~ X1 + X2 + X3 + X4, family = poisson(link = "log"),
            data = Plastic)
 condition_number(mod, method = "WS")
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 4.9872 0.0080 0.0046 0.0001 0.0000
 #> 
-#> CN (NC_WS) (eigenvalue scale): 768847.1926
+#> CN (NC_WS) (eigenvalue scale): 768847.1927
 #> sqrt(CN) (NC_WS) (classical, singular-value scale): 876.8393
 ```

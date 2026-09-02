@@ -96,25 +96,25 @@ condition_number(mod, method = "RAW") # no transformation at all
 #> CN (NC_RAW) (eigenvalue scale): 7557.9499
 #> sqrt(CN) (NC_RAW) (classical, singular-value scale): 86.9365
 condition_number(mod, method = "MP")  # requires multiColl package
-#> Eigenvalues of X_lu'WX_lu (decreasing order):
+#> Eigenvalues of X_ul'WX_ul (decreasing order):
 #> [1] 143.5803  18.7623  14.5861   5.0021   0.0197
 #> 
 #> CN (NC_MP) (eigenvalue scale): 7271.5771
 #> sqrt(CN) (NC_MP) (classical, singular-value scale): 85.2735
 condition_number(mod, method = "WS")  # same as the default above, explicitly labeled
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 3.2659 0.8814 0.6208 0.2315 0.0003
 #> 
 #> CN (NC_WS) (eigenvalue scale): 10123.1410
 #> sqrt(CN) (NC_WS) (classical, singular-value scale): 100.6138
 condition_number(mod, method = "OZ")  # centered and unit-scaled [@ozkale2021]
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ulc (decreasing order):
 #> [1] 2.4718 0.8806 0.6473 0.0003
 #> 
 #> CN (NC_OZ) (eigenvalue scale): 7201.4286
 #> sqrt(CN) (NC_OZ) (classical, singular-value scale): 84.8612
 condition_number(mod, method = "MS")  # centered, unit-scaled, then refit [@marx1990]
-#> Eigenvalues of X_cu'WX_cu (decreasing order):
+#> Eigenvalues of X_ulc'WX_ulc (decreasing order):
 #> [1] 3816.0817   42.5254   18.0071   13.6069    0.0198
 #> 
 #> CN (NC_MS) (eigenvalue scale): 192963.4257
@@ -204,6 +204,41 @@ which at least two coefficients have a variance proportion `>= 0.5`
 (Belsley et al. 1980). Both thresholds are adjustable via
 `index_threshold` and `proportion_threshold`.
 
+## ML-collinearity
+
+[`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+implements the diagnostic of Lesaffre and Marx (1993), which compares
+`sqrt(CN)` of the *original* design matrix (via
+[`multiColl::CNs()`](https://rdrr.io/pkg/multiColl/man/CNs.html))
+against `sqrt(CN)` of the IRLS-weighted information matrix under
+`method = "MP"`, to distinguish ordinary collinearity among the
+explanatory variables from *ML-collinearity*: ill-conditioning that
+instead arises from the combination of the response, the fitted
+coefficients and the link function.
+
+``` r
+
+ml_collinearity(mod)
+#> ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+#> 
+#> sqrt(CN) of X (original design matrix, multiColl::CNs(X)[1]): 36.9284
+#> sqrt(CN) of W (MacKinnon-Puterman information matrix, method = "MP"): 85.2735
+#> ratio (sqrt(CN)_W / sqrt(CN)_X): 2.3092
+#> 
+#> Collinearity in X (sqrt(CN)_X > 30): YES
+#> ML-collinearity (ratio_wx > 5 and sqrt(CN)_W > 30): no
+```
+
+A model is flagged with `ml_collinearity = TRUE` only when both the
+ratio and `sqrt(CN)` of the information matrix exceed their thresholds
+(5 and 30 by default); see
+[`?ml_collinearity`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+and the package’s
+[README](https://github.com/cbgarciaugr/multiCollglm#ml-collinearity-lesaffre-and-marx-1993)
+for the full rationale, and the [`LeeCancer` reproduction
+article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html)
+for Lesaffre and Marx’s own worked example, reproduced exactly.
+
 ## Beyond this guide
 
 This vignette covers the package’s basic usage. The [package
@@ -217,6 +252,10 @@ data transformation, together with a comparison against the results
 
 Belsley, D. A., E. Kuh, and R. E. Welsch. 1980. *Regression Diagnostics:
 Identifying Influential Data and Sources of Collinearity*. Wiley.
+
+Lesaffre, E., and B. D. Marx. 1993. “Collinearity in Generalized Linear
+Regression.” *Communications in Statistics - Theory and Methods* 22 (7):
+1933–52. <https://doi.org/10.1080/03610929308831126>.
 
 Mackinnon, M. J., and M. L. Puterman. 1989. “Collinearity in Generalized
 Linear Models.” *Communications in Statistics - Theory and Methods* 18

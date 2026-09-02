@@ -5,13 +5,19 @@ models, all computed over the design matrix weighted by the IRLS
 weights at convergence and scaled to unit length (without centering).
 Works directly on glm objects, and on glmnet/cv.glmnet objects by
 internally refitting a glm on the active set of variables at the
-given lambda."><meta property="og:description" content="Provides condition_number(), bkw_diagnostics() and
+given lambda. ml_collinearity() adds the complementary diagnostic of
+Lesaffre and Marx (1993), comparing the condition number of the
+original design matrix against that of the IRLS-weighted information
+matrix to distinguish ordinary collinearity from ML-collinearity."><meta property="og:description" content="Provides condition_number(), bkw_diagnostics() and
 rvif_diagnostics() to assess collinearity in generalized linear
 models, all computed over the design matrix weighted by the IRLS
 weights at convergence and scaled to unit length (without centering).
 Works directly on glm objects, and on glmnet/cv.glmnet objects by
 internally refitting a glm on the active set of variables at the
-given lambda."></head><body>
+given lambda. ml_collinearity() adds the complementary diagnostic of
+Lesaffre and Marx (1993), comparing the condition number of the
+original design matrix against that of the IRLS-weighted information
+matrix to distinguish ordinary collinearity from ML-collinearity."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -53,7 +59,10 @@ models, all computed over the design matrix weighted by the IRLS
 weights at convergence and scaled to unit length (without centering).
 Works directly on <code>glm</code> objects, and on <code>glmnet</code>/<code>cv.glmnet</code> objects by
 internally refitting a <code>glm</code> on the active set of variables at the
-given lambda.</p>
+given lambda. <code><a href="ml_collinearity.html">ml_collinearity()</a></code> adds the complementary diagnostic of
+Lesaffre and Marx (1993), comparing the condition number of the
+original design matrix against that of the IRLS-weighted information
+matrix to distinguish ordinary collinearity from ML-collinearity.</p>
     </div>
 
 

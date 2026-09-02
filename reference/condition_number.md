@@ -218,14 +218,15 @@ condition_number(
 ## Value
 
 An object of class `multicollglm_cn` with, among others, the eigenvalues
-used (of \\X'WX\\ for `method = "RAW"`, of \\X\_{unit}'X\_{unit}\\ for
-`"WS"`/`"OZ"`, or, for `method = "MP"`/`"MS"`, of the respective refit's
-\\X\_{lu}'WX\_{lu}\\ or \\X\_{cu}'WX\_{cu}\\), `CN` itself, the ratio
-between the largest and smallest eigenvalue (`condition_number`), and
-its square root on the classical singular-value scale, `sqrt(CN)`
-(`condition_index`, i.e. `sqrt(condition_number)`), and, when `method`
-was supplied, `method` (`"RAW"`/`"MP"`/`"MS"`/`"WS"`/`"OZ"`) and
-`nc_label` (`"NC_RAW"`/`"NC_MP"`/`"NC_MS"`/`"NC_WS"`/`"NC_OZ"`).
+used (of \\X'WX\\ for `method = "RAW"`, of \\(X'WX)\_{ul}\\ for `"WS"`,
+of \\(X'WX)\_{ulc}\\ for `"OZ"`, or, for `method = "MP"`/`"MS"`, of the
+respective refit's \\X\_{ul}'WX\_{ul}\\ or \\X\_{ulc}'WX\_{ulc}\\), `CN`
+itself, the ratio between the largest and smallest eigenvalue
+(`condition_number`), and its square root on the classical
+singular-value scale, `sqrt(CN)` (`condition_index`, i.e.
+`sqrt(condition_number)`), and, when `method` was supplied, `method`
+(`"RAW"`/`"MP"`/`"MS"`/`"WS"`/`"OZ"`) and `nc_label`
+(`"NC_RAW"`/`"NC_MP"`/`"NC_MS"`/`"NC_WS"`/`"NC_OZ"`).
 
 ## References
 
@@ -272,19 +273,19 @@ condition_number(mod, method = "RAW") # X'WX, no centering or scaling
 #> CN (NC_RAW) (eigenvalue scale): 7557.9499
 #> sqrt(CN) (NC_RAW) (classical, singular-value scale): 86.9365
 condition_number(mod, method = "WS") # same numbers, labeled NC_WS
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 3.2659 0.8814 0.6208 0.2315 0.0003
 #> 
 #> CN (NC_WS) (eigenvalue scale): 10123.1410
 #> sqrt(CN) (NC_WS) (classical, singular-value scale): 100.6138
 condition_number(mod, method = "OZ")
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ulc (decreasing order):
 #> [1] 2.4718 0.8806 0.6473 0.0003
 #> 
 #> CN (NC_OZ) (eigenvalue scale): 7201.4286
 #> sqrt(CN) (NC_OZ) (classical, singular-value scale): 84.8612
 condition_number(mod, method = "MS") # center + unit length, then refit
-#> Eigenvalues of X_cu'WX_cu (decreasing order):
+#> Eigenvalues of X_ulc'WX_ulc (decreasing order):
 #> [1] 3816.0817   42.5254   18.0071   13.6069    0.0198
 #> 
 #> CN (NC_MS) (eigenvalue scale): 192963.4257

@@ -62,7 +62,7 @@ data(Nitrogen)
 mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"),
            data = Nitrogen)
 condition_number(mod, method = "WS")
-#> Eigenvalues of X_unit'X_unit (decreasing order):
+#> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 4.7741 0.1578 0.0443 0.0230 0.0008
 #> 
 #> CN (NC_WS) (eigenvalue scale): 6080.4514
