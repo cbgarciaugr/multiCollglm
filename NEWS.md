@@ -45,10 +45,3 @@
   for the Gamma family with inverse link.
 * Tests rewritten: each method against its manual definition, Table 1 of the
   manuscript on the packaged datasets, equivalence with `VisCollin::colldiag()`.
-
-# multiCollglm 0.3.0
-
-* Initial documented version: `condition_number()` with five definitions
-  (`"RAW"`, `"MP"`, `"MS"`, `"WS"`, `"OZ"`), `bkw_diagnostics()`,
-  `rvif_diagnostics()`, `ml_collinearity()`, `glmnet` / `cv.glmnet` methods,
-  vignette and pkgdown articles.
