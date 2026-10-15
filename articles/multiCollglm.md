@@ -174,21 +174,6 @@ Some things worth knowing:
   [comparison with
   VisCollin](https://cbgarciaugr.github.io/multiCollglm/articles/comparison-viscollin.html).
 
-### Changes with respect to version 0.3.0
-
-Version 0.4.0 removes `method = "OZ"` (Ozkale), `method = "MS"` (Marx
-and Smith) and the arguments `center` and `scale`, because all of them
-centered the data. Using them now stops with an explanatory message. The
-`multiColl` package is no longer needed for `method = "MP"` or for
-[`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md).
-
-``` r
-
-condition_number(mod, method = "OZ")
-#> Error:
-#> ! method = "OZ" was removed in multiCollglm 0.4.0. Available methods: "WS", "MP", "X", "RAW".
-```
-
 ## Usage with `glmnet` / `cv.glmnet`
 
 When the model is a regularized fit (`glmnet` or `cv.glmnet`), there is

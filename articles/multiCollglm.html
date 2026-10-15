@@ -284,20 +284,6 @@ intercept, exactly
 <code>VisCollin::colldiag(mod, add.intercept = TRUE)</code>. See the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/comparison-viscollin.html">comparison
 with VisCollin</a>.</li>
 </ul>
-<div class="section level3">
-<h3 id="changes-with-respect-to-version-0-3-0">Changes with respect to version 0.3.0<a class="anchor" aria-label="anchor" href="#changes-with-respect-to-version-0-3-0"></a>
-</h3>
-<p>Version 0.4.0 removes <code>method = "OZ"</code> (Ozkale),
-<code>method = "MS"</code> (Marx and Smith) and the arguments
-<code>center</code> and <code>scale</code>, because all of them centered
-the data. Using them now stops with an explanatory message. The
-<code>multiColl</code> package is no longer needed for
-<code>method = "MP"</code> or for <code><a href="../reference/ml_collinearity.html">ml_collinearity()</a></code>.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/condition_number.html">condition_number</a></span><span class="op">(</span><span class="va">mod</span>, method <span class="op">=</span> <span class="st">"OZ"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> method = "OZ" was removed in multiCollglm 0.4.0. Available methods: "WS", "MP", "X", "RAW".</span></span></code></pre></div>
-</div>
 </div>
 <div class="section level2">
 <h2 id="usage-with-glmnet-cv-glmnet">Usage with <code>glmnet</code> / <code>cv.glmnet</code><a class="anchor" aria-label="anchor" href="#usage-with-glmnet-cv-glmnet"></a>
@@ -307,7 +293,7 @@ the data. Using them now stops with an explanatory message. The
 of its own. <code>multiCollglm</code> identifies the active set of
 variables at the given <code>lambda</code> and refits a standard
 <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> on them so the same diagnostics can be computed:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://glmnet.stanford.edu" class="external-link">glmnet</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span><span class="op">)</span></span>
@@ -343,7 +329,7 @@ the explanatory variables from <em>ML-collinearity</em>:
 ill-conditioning that instead arises from the combination of the
 response, the fitted coefficients and the link function. Both are
 computed natively; no other package is needed.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ml_collinearity.html">ml_collinearity</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ML-collinearity diagnostic (Lesaffre and Marx, 1993)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -358,7 +344,7 @@ model (<code>TEMP</code> is expressed in hundredths of a degree in the
 packaged data, hence the factor 100), whose published <span class="math inline">\(\kappa_X = 190.78\)</span> is reproduced exactly
 (see also the <a href="https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html"><code>LeeCancer</code>
 reproduction article</a>):</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lee</span> <span class="op">&lt;-</span> <span class="va">LeeCancer</span></span>
 <span><span class="va">lee</span><span class="op">$</span><span class="va">x6100</span> <span class="op">&lt;-</span> <span class="va">lee</span><span class="op">$</span><span class="va">x6</span> <span class="op">*</span> <span class="fl">100</span></span>
 <span><span class="va">mod_lee</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x4</span> <span class="op">+</span> <span class="va">x6100</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">lee</span><span class="op">)</span></span>

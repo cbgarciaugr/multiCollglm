@@ -60,13 +60,3 @@
 - Tests rewritten: each method against its manual definition, Table 1 of
   the manuscript on the packaged datasets, equivalence with
   [`VisCollin::colldiag()`](https://rdrr.io/pkg/VisCollin/man/colldiag.html).
-
-## multiCollglm 0.3.0
-
-- Initial documented version:
-  [`condition_number()`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)
-  with five definitions (`"RAW"`, `"MP"`, `"MS"`, `"WS"`, `"OZ"`),
-  [`bkw_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/bkw_diagnostics.md),
-  [`rvif_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/rvif_diagnostics.md),
-  [`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md),
-  `glmnet` / `cv.glmnet` methods, vignette and pkgdown articles.
