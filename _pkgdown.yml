@@ -10,7 +10,7 @@ development:
 
 navbar:
   structure:
-    left:  [intro, examples, reference, articles, news]
+    left:  [intro, examples, reference, articles]
     right: [search, github]
   components:
     intro:
