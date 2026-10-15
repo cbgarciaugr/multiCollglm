@@ -91,10 +91,10 @@ same <- sapply(mods, function(m) {
 })
 t(same)
 #>          max_diff_condition_index max_diff_proportions
-#> Lee                  3.584546e-10         5.719730e-14
-#> Nitrogen             1.833200e-11         1.301181e-13
-#> Mine                 8.171241e-14         3.996803e-15
-#> Plastic              3.634796e-09         4.498291e-12
+#> Lee                  3.733192e-10         4.553302e-14
+#> Nitrogen             2.273737e-13         5.218048e-15
+#> Mine                 4.014566e-13         1.998401e-15
+#> Plastic              1.257945e-08         1.388789e-11
 ```
 
 The differences are floating-point noise: condition indices and

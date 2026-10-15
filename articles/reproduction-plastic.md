@@ -73,7 +73,7 @@ knitr::kable(calc_table(mod), digits = 4)
 | WS     | NC_WS    |     768847.2 |   876.8393 |
 | MP     | NC_MP    |     808281.3 |   899.0447 |
 | X      | NC_X     |     354909.6 |   595.7429 |
-| RAW    | NC_RAW   | 5411312573.0 | 73561.6243 |
+| RAW    | NC_RAW   | 5411312565.6 | 73561.6243 |
 
 ``` r
 
@@ -107,7 +107,7 @@ knitr::kable(calc_table(mod2), digits = 4)
 | WS     | NC_WS    |     1846.908 |   42.9757 |
 | MP     | NC_MP    |     1964.449 |   44.3221 |
 | X      | NC_X     |     1808.590 |   42.5275 |
-| RAW    | NC_RAW   | 27574987.199 | 5251.1891 |
+| RAW    | NC_RAW   | 27574987.094 | 5251.1891 |
 
 No combination of family/link/method available in
 [`condition_number()`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)

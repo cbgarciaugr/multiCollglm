@@ -55,6 +55,6 @@ condition_number(mod, method = "WS")
 #> Eigenvalues of (X'WX)_ul (decreasing order):
 #> [1] 4.9872 0.0080 0.0046 0.0001 0.0000
 #> 
-#> CN (NC_WS, eigenvalue scale): 768847.1927
+#> CN (NC_WS, eigenvalue scale): 768847.1926
 #> sqrt(CN) (NC_WS, classical, singular-value scale): 876.8393
 ```

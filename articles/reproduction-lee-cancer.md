@@ -53,7 +53,7 @@ knitr::kable(calc_table(mod1_leecancer), digits = 4)
 | WS     | NC_WS    |      99311.10 |   315.1366 |
 | MP     | NC_MP    |     108869.76 |   329.9542 |
 | X      | NC_X     |      36395.66 |   190.7765 |
-| RAW    | NC_RAW   | 116815739\.71 | 10808.1330 |
+| RAW    | NC_RAW   | 116815739\.70 | 10808.1330 |
 
 Lesaffre and Marx (1993) used this example to compare the \\CN\\
 proposed by Mackinnon and Puterman (1989) (329.95) with the one proposed
@@ -104,7 +104,7 @@ knitr::kable(calc_table(mod2_leecancer), digits = 4)
 | WS     | NC_WS    |     143044.11 |   378.2117 |
 | MP     | NC_MP    |     163327.20 |   404.1376 |
 | X      | NC_X     |      61922.13 |   248.8416 |
-| RAW    | NC_RAW   | 219838806\.31 | 14826.9621 |
+| RAW    | NC_RAW   | 219838806\.17 | 14826.9621 |
 
 ``` r
 
@@ -161,7 +161,7 @@ knitr::kable(calc_table(mod3_leecancer), digits = 4)
 | WS     | NC_WS    |     218108.47 |   467.0208 |
 | MP     | NC_MP    |     248614.00 |   498.6121 |
 | X      | NC_X     |      78538.94 |   280.2480 |
-| RAW    | NC_RAW   | 395524494\.29 | 19887.7976 |
+| RAW    | NC_RAW   | 395524499\.52 | 19887.7978 |
 
 ``` r
 
@@ -177,7 +177,7 @@ knitr::kable(calc_table(mod3b_leecancer), digits = 4)
 | WS     | NC_WS    |     139307.96 |   373.2398 |
 | MP     | NC_MP    |     143196.30 |   378.4129 |
 | X      | NC_X     |      11762.69 |   108.4559 |
-| RAW    | NC_RAW   | 290094006\.58 | 17032.1463 |
+| RAW    | NC_RAW   | 290094011\.58 | 17032.1464 |
 
 Huang, Jou and Cho (2015) use all six covariates and report \\CN =
 418.13\\. This value does not match any of

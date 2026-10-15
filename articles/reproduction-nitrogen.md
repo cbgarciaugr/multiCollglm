@@ -85,7 +85,7 @@ knitr::kable(tbl, digits = 4)
 | WS     | NC_WS    |     6080.451 |   77.9772 |
 | MP     | NC_MP    |     5762.046 |   75.9081 |
 | X      | NC_X     |     4584.002 |   67.7053 |
-| RAW    | NC_RAW   | 77275535.018 | 8790.6504 |
+| RAW    | NC_RAW   | 77275535.020 | 8790.6504 |
 
 The values with intercept are the ones of Table 1 of the manuscript
 (\\\sqrt{CN}\_{WS} \approx 78\\). Without the intercept, the same four
@@ -126,7 +126,7 @@ range(Xc %*% coef(mod_noint))                          # ... a null vector: Xc b
 #> [1] -1.090822e-08  1.282675e-08
 Xc <- sweep(Xc, 2, sqrt(colSums(Xc^2)), "/")           # ... and unit length
 eigen(crossprod(Xc), symmetric = TRUE, only.values = TRUE)$values  # smallest ~ 0
-#> [1] 3.558522e+00 2.948534e-01 1.466243e-01 5.231958e-17
+#> [1] 3.558522e+00 2.948534e-01 1.466243e-01 4.131421e-16
 ```
 
 The smallest eigenvalue is zero up to rounding, so the condition number
