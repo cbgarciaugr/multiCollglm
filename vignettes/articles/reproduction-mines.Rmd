@@ -1,0 +1,90 @@
+---
+title: "Reproduction: coal mine roof-fracture data (Mine)"
+description: >
+  Reproduces the collinearity diagnostic of the coal mine roof-fracture
+  dataset, used by five works fitting different count-data GLMs, and
+  shows that the "RAW" (untransformed) method exactly reproduces the
+  most-cited value in the literature.
+bibliography: ../references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Context
+
+The `Mine` dataset records 44 observations of roof fractures in coal
+mines in the Appalachian region of West Virginia, with four continuous
+predictors: inner burden thickness, percentage extraction of the
+previously mined lower seam, lower seam height, and time since the mine
+opened. It is the real-data application shared by five reviewed works,
+each fitting a different count-data GLM: Kurtoglu and Ozkale
+[-@kurtoglu2019a] and Kurtoglu and Ozkale [-@kurtoglu2019b] (same authors,
+a restricted ridge and a restricted Liu estimator respectively, both with
+Poisson and a log link); Sami, Amin and Butt [-@sami2022]
+(Conway-Maxwell-Poisson, a "COMPRR" ridge estimator); Hussein and Algamal
+[-@hussein2026] (Bell regression, a Kibria-Lukman-type estimator);
+and Sami et al. [-@sami2026] (discrete Weibull, a "DWRE" ridge
+estimator).
+
+Sami, Amin and Butt [-@sami2022] state that they analyze a different
+distribution but provide no diagnostic measures of their own (which
+should differ across distributions), instead citing a previous paper to
+claim that the dataset exhibits collinearity. Sami et al. [-@sami2026]
+do the same, citing Sami, Amin and Butt [-@sami2022] despite also using a
+different distribution; moreover, based on the code in Sami et al.'s
+[-@sami2026] appendix, the diagnostic appears to be computed on the
+unweighted $X'X$, and although the code includes a standardization step,
+it is never actually applied.
+
+## Data
+
+```{r}
+library(multiCollglm)
+data(Mine)
+str(Mine)
+
+mod <- glm(y ~ x1 + x2 + x3 + x4, family = poisson(link = "log"),
+           data = Mine)
+```
+```{r echo=FALSE}
+methods <- c("WS", "MP", "X", "RAW")
+
+tbl <- do.call(rbind, lapply(methods, function(m) {
+  res <- tryCatch(condition_number(mod, method = m),
+                   error = function(e) NULL)
+  if (is.null(res)) {
+    data.frame(method = m, nc_label = NA, CN = NA,
+               `sqrt(CN)` = NA, check.names = FALSE)
+  } else {
+    data.frame(method = m, nc_label = res$nc_label,
+               CN = res$condition_number,
+               `sqrt(CN)` = res$condition_index, check.names = FALSE)
+  }
+}))
+```
+
+## Diagnostic with multiCollglm and comparison with literature
+
+`sqrt(CN)` (square-root scale) of `method = "RAW"` -- no
+transformation at all, directly on $X'\hat{W}X$ -- is
+**`r round(condition_number(mod, method = "RAW")$condition_index, 4)`**,
+which matches, up to rounding, the **2093.32** reported by Kurtoglu and
+Ozkale [-@kurtoglu2019a; -@kurtoglu2019b].
+
+Hussein and Algamal [-@hussein2026], with a Bell distribution, obtain **2139.89** (same order
+of magnitude, consistent with a different but Poisson-like count
+distribution for these data).
+
+```{r}
+knitr::kable(tbl, digits = 4)
+```
+
+This dataset is a good example of how the transformation of data can affect the results in `CN`. Note that the diagnostic's magnitude changes substantially.
+
+
+## References

@@ -1,0 +1,216 @@
+---
+title: "Introduction to multiCollglm"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to multiCollglm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`multiCollglm` diagnoses collinearity in generalized linear models (GLMs),
+generalizing the classical linear-regression diagnostics (condition
+number, Belsley-Kuh-Welsch decomposition, and the Redefined Variance
+Inflation Factor, RVIF [@salmeron2025]) to any family and link function.
+By default all three follow Weissfeld and Sereika [-@weissfeld1991]: they
+are computed on the design matrix weighted by the IRLS weights at
+convergence and scaled to unit length by column, **without centering**,
+so the intercept takes part in the diagnosis and non-essential
+collinearity (between the intercept and the explanatory variables) can be
+detected. The `method` argument gives access to three more definitions,
+including the one of the original design matrix $X'X$.
+`ml_collinearity()` adds a fourth, complementary diagnostic:
+Lesaffre and Marx's [-@lesaffre1993] comparison between the condition
+number of the *original* design matrix and that of the IRLS-weighted
+information matrix, used to tell apart ordinary collinearity among the
+explanatory variables from *ML-collinearity* (see below). This vignette
+is the package's complete guide; see `vignette("multiCollglm")` any time
+you need to come back to it.
+
+## Installation
+
+```r
+# install.packages("remotes")
+remotes::install_github("cbgarciaugr/multiCollglm")
+```
+
+## Usage with `glm`
+
+```{r}
+library(multiCollglm)
+
+set.seed(1)
+n <- 200
+x1 <- rnorm(n)
+x2 <- x1 + rnorm(n, sd = 0.05) # almost collinear with x1
+x3 <- rnorm(n)
+x4 <- rnorm(n)
+mu <- exp(1 + 0.3 * x1 + 0.3 * x2 - 0.2 * x3 + 0.1 * x4)
+y <- rgamma(n, shape = 5, rate = 5 / mu)
+
+mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"))
+```
+
+```{r}
+condition_number(mod)
+```
+
+```{r}
+bkw_diagnostics(mod)
+```
+
+```{r}
+rvif_diagnostics(mod)
+```
+
+## Condition-number methods
+
+`condition_number()`, `bkw_diagnostics()` and `rvif_diagnostics()` all take
+a `method` argument with four possible values. The default is `"WS"`:
+
+```{r}
+condition_number(mod, method = "WS")  # the default, written out
+condition_number(mod, method = "MP")
+condition_number(mod, method = "X")   # original design matrix, no weights
+condition_number(mod, method = "RAW") # X'WX with no transformation
+```
+
+Let $X$ be the design matrix (intercept included), $\hat W$ the IRLS
+weights at convergence, and let the subscript $ul$ mean "every column
+scaled to unit Euclidean length":
+
+| `method` | Matrix whose eigenvalues are used | Comments |
+|---|---|---|
+| `"WS"` (default) | $(X'\hat W X)_{ul} = S\,X'\hat W X\,S$, with $S=\mathrm{diag}(X'\hat W X)^{-1/2}$ [@weissfeld1991] | The GLM is fitted on the original variables and the information matrix is rescaled afterwards (equivalently: unit-length columns of $\hat W^{1/2}X$). Equals 1 whenever $X'\hat W X$ is diagonal. |
+| `"MP"` | $X_{ul}'\hat W X_{ul}$, with $X$ scaled **before** refitting [@mackinnon1989] | The weights enter after the scaling, so it equals 1 under orthogonality only if all the weights are equal. |
+| `"X"` | $X_{ul}'X_{ul}$ | The original design matrix, ignoring the weights: the classical linear-model diagnostic of the same predictors ($\kappa_X$ of @lesaffre1993). |
+| `"RAW"` | $X'\hat W X$ | No transformation at all. Dominated by the units of the variables; a baseline only. |
+
+None of the four centers the data. This is deliberate: centering removes
+the intercept column from the analysis, so a near-linear relationship
+between the intercept and the regressors (non-essential collinearity) can
+no longer be seen [@belsley1980], and for some family/link combinations it
+is not even possible -- for the Gamma family with its canonical (inverse)
+link, $\sqrt{\hat w_i}\,\hat\eta_i = 1$ for every observation, so a
+centered, weighted design matrix is exactly singular. The [`Nitrogen`
+reproduction
+article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-nitrogen.html)
+shows it on real data.
+
+Some things worth knowing:
+
+- All of them are on the classical scale: `condition_index` is
+  $\sqrt{\lambda_{max}/\lambda_{min}}$ (the one that the thresholds 10,
+  30 and 100 refer to) and `condition_number` is the ratio
+  $\lambda_{max}/\lambda_{min}$ itself.
+- With a Gamma family and *log* link the IRLS weights are identically 1,
+  so `"WS"`, `"MP"` and `"X"` coincide (this happens in the `Bodyfat`
+  application). The same happens for a Gaussian model with identity link.
+- `rvif_diagnostics()` calls `rvif::rvifs()` with `ul = TRUE`, which
+  rescales the matrix to unit length once more. Hence `"WS"`, `"MP"` and
+  `"RAW"` give the *same* RVIF; only `"X"` (no weights) differs.
+- `bkw_diagnostics(mod, method = "X")` is, for a model with intercept,
+  exactly `VisCollin::colldiag(mod, add.intercept = TRUE)`. See the
+  [comparison with
+  VisCollin](https://cbgarciaugr.github.io/multiCollglm/articles/comparison-viscollin.html).
+
+### Changes with respect to version 0.3.0
+
+Version 0.4.0 removes `method = "OZ"` (Ozkale), `method = "MS"` (Marx and
+Smith) and the arguments `center` and `scale`, because all of them
+centered the data. Using them now stops with an explanatory message. The
+`multiColl` package is no longer needed for `method = "MP"` or for
+`ml_collinearity()`.
+
+```{r, error = TRUE}
+condition_number(mod, method = "OZ")
+```
+
+## Usage with `glmnet` / `cv.glmnet`
+
+When the model is a regularized fit (`glmnet` or `cv.glmnet`), there is no
+IRLS fit and no convergence weights of its own. `multiCollglm` identifies
+the active set of variables at the given `lambda` and refits a standard
+`glm()` on them so the same diagnostics can be computed:
+
+```r
+library(glmnet)
+
+x <- as.matrix(data.frame(x1, x2, x3, x4))
+cvfit <- cv.glmnet(x, y, family = Gamma(link = "inverse"))
+
+condition_number(cvfit, x = x, y = y, family = Gamma(link = "inverse"), s = "lambda.min")
+bkw_diagnostics(cvfit, x = x, y = y, family = Gamma(link = "inverse"), s = "lambda.min")
+rvif_diagnostics(cvfit, x = x, y = y, family = Gamma(link = "inverse"), s = "lambda.min")
+```
+
+The result also includes `active_vars` and `dropped_vars`, so you know
+exactly which sub-model the diagnostic was computed on.
+
+## BKW rule of thumb
+
+`bkw_diagnostics()` flags as suspicious any dimension whose `sqrt(CN)`
+is `>= 10` and on which at least two coefficients have a variance
+proportion `>= 0.5` [@belsley1980]. Both thresholds are
+adjustable via `index_threshold` and `proportion_threshold`.
+
+## ML-collinearity
+
+`ml_collinearity()` implements the diagnostic of Lesaffre and Marx
+[-@lesaffre1993], which compares `sqrt(CN)` of the *original* design
+matrix, `condition_number(mod, method = "X")`, against `sqrt(CN)` of the
+IRLS-weighted information matrix under `method = "MP"`, to distinguish
+ordinary collinearity among the explanatory variables from
+*ML-collinearity*: ill-conditioning that instead arises from the
+combination of the response, the fitted coefficients and the link
+function. Both are computed natively; no other package is needed.
+
+```{r}
+ml_collinearity(mod)
+```
+
+The example below is Lesaffre and Marx's own Lee cancer-remission model
+(`TEMP` is expressed in hundredths of a degree in the packaged data, hence
+the factor 100), whose published $\kappa_X = 190.78$ is reproduced exactly
+(see also the [`LeeCancer` reproduction
+article](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.html)):
+
+```{r}
+lee <- LeeCancer
+lee$x6100 <- lee$x6 * 100
+mod_lee <- glm(y ~ x1 + x4 + x6100, family = binomial(), data = lee)
+ml_collinearity(mod_lee)
+```
+
+Following Lesaffre and Marx (1993, Sec. 4.2), a model is flagged with
+`ml_collinearity = TRUE` only when **both** the ratio `sqrt(CN)_W /
+sqrt(CN)_X` exceeds `ratio_threshold` (default 5) **and** `sqrt(CN)_W`
+itself exceeds `kappa_threshold` (default 30) -- a high ratio by itself,
+with a small `sqrt(CN)_W`, does not indicate an ill-conditioned
+information matrix to begin with. Separately, `sqrt(CN)_X >
+kappa_threshold` flags ordinary collinearity among the explanatory
+variables (`collinearity_x`); if both flags are set and the ratio is
+close to 1, both types of collinearity are simultaneously present.
+`ml_collinearity()` also has `glmnet`/`cv.glmnet` methods, refitting on
+the active set exactly as the other three diagnostics do. See
+`?ml_collinearity` for the full argument reference.
+
+## Beyond this guide
+
+This vignette covers the package's basic usage. The [package
+website](https://cbgarciaugr.github.io/multiCollglm/articles/index.html)
+also includes a series of **reproduction articles**: real cases from the
+literature where collinearity was diagnosed without applying the correct
+data transformation, together with a comparison against the results
+`multiCollglm` produces, and an article comparing the package with
+**VisCollin**, the reference R implementation of the linear-model
+collinearity diagnostics and their visualization.
+
+## References

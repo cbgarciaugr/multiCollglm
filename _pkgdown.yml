@@ -1,0 +1,111 @@
+url: https://cbgarciaugr.github.io/multiCollglm/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  math-rendering: mathjax
+
+development:
+  mode: release
+
+navbar:
+  structure:
+    left:  [intro, examples, reference, articles, news]
+    right: [search, github]
+  components:
+    intro:
+      text: Get started
+      href: articles/multiCollglm.html
+    examples:
+      text: Examples
+      menu:
+      - text: "Overview of all examples"
+        href: articles/examples.html
+      - text: -------
+      - text: "Lee cancer remission (binomial)"
+        href: articles/reproduction-lee-cancer.html
+      - text: "Nitrogen dioxide (Gamma, inverse)"
+        href: articles/reproduction-nitrogen.html
+      - text: "Coal-mine fractures (Poisson)"
+        href: articles/reproduction-mines.html
+      - text: "Body fat (Gamma, log)"
+        href: articles/reproduction-bodyfat.html
+      - text: "Plastic injection (Poisson)"
+        href: articles/reproduction-plastic.html
+      - text: -------
+      - text: "Comparison with VisCollin"
+        href: articles/comparison-viscollin.html
+
+home:
+  title: "multiCollglm: collinearity diagnostics for GLMs"
+  description: >
+    Condition number, Belsley-Kuh-Welsch decomposition, RVIF and
+    ML-collinearity for generalized linear models, computed on the
+    IRLS-weighted information matrix.
+  links:
+  - text: Complete guide (vignette)
+    href: articles/multiCollglm.html
+  - text: Examples with real data
+    href: articles/examples.html
+  - text: Comparison with VisCollin
+    href: articles/comparison-viscollin.html
+  - text: Full function reference
+    href: reference/index.html
+
+reference:
+- title: Diagnostics
+  desc: >
+    The three main functions. By default (`method = "WS"`) they use the
+    design matrix weighted by IRLS at convergence and scaled to unit
+    length by column, without centering; `method` also gives the
+    definitions of MacKinnon and Puterman (`"MP"`), of the original
+    design matrix (`"X"`) and of the raw information matrix (`"RAW"`).
+  contents:
+  - condition_number
+  - bkw_diagnostics
+  - rvif_diagnostics
+- title: ML-collinearity
+  desc: >
+    Compares the condition number of the original design matrix against
+    that of the IRLS-weighted information matrix, following Lesaffre and
+    Marx (1993), to tell apart ordinary collinearity among the
+    explanatory variables from ML-collinearity.
+  contents:
+  - ml_collinearity
+- title: Example datasets
+  desc: >
+    Real data used in the examples (see the Examples menu).
+  contents:
+  - Nitrogen
+  - Mine
+  - LeeCancer
+  - Plastic
+- title: Package
+  contents:
+  - multiCollglm-package
+
+articles:
+- title: Get started
+  navbar: ~
+  contents:
+  - multiCollglm
+- title: Examples
+  desc: >
+    Real-data applications. Start with the overview, which links to each
+    example and summarizes the four condition-number definitions on all
+    the data sets.
+  contents:
+  - articles/examples
+  - articles/reproduction-lee-cancer
+  - articles/reproduction-nitrogen
+  - articles/reproduction-mines
+  - articles/reproduction-bodyfat
+  - articles/reproduction-plastic
+- title: Comparison with other software
+  desc: >
+    How multiCollglm relates to the VisCollin package, on the same data.
+  contents:
+  - articles/comparison-viscollin
+- title: internal
+  contents:
+  - articles/reproduction-template

@@ -1,0 +1,129 @@
+---
+title: "Reproduction: cancer remission data (Lee 1974)"
+description: >
+  Reproduces the three logistic-model variants fitted to Lee's (1974)
+  cancer remission dataset -- Lesaffre and Marx (1993), Ozkale and Arican
+  (2016)/Ozkale (2021), and Huang, Jou and Cho (2015) -- and contrasts
+  them against multiCollglm's four methods (WS, MP, X, RAW).
+bibliography: ../references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Context
+
+Lee's [-@lee1974] cancer remission dataset records clinical observations from
+27 patients, of whom 9 had complete remission (`y = 1`) and 18 had
+incomplete remission (`y = 0`), together with six quantitative
+covariates: cellularity index (CELL), smear index (SMEAR), infiltrate
+index (INFIL), labeling index (LI), percentage of blast cells (BLAST) and
+body temperature (TEMP). It is a classic example for collinearity
+diagnostics in binomial logistic regression, used with different subsets
+of covariates by Lesaffre and Marx [-@lesaffre1993], Ozkale and
+Arican [-@ozkalearican2016] together with Ozkale [-@ozkale2021], and
+Huang, Jou and Cho [-@huang2015].
+
+Lesaffre and Marx [-@lesaffre1993] use this dataset only with three covariates (LI, TEMP, CELL) that show severe collinearity.
+The remaining reviewed works use all covariates except, in some cases,
+LI.
+
+## Data
+
+```{r}
+library(multiCollglm)
+data(LeeCancer)
+str(LeeCancer)
+# TEMP is recorded in the original source on a /100 scale; it is
+# multiplied back by 100 to match the scale used by the cited works.
+LeeCancer$x6100 <- LeeCancer$x6 * 100
+```
+
+```{r echo=FALSE}
+methods <- c("WS", "MP", "X", "RAW")
+
+calc_table <- function(mod) {
+  do.call(rbind, lapply(methods, function(m) {
+    res <- tryCatch(condition_number(mod, method = m),
+                     error = function(e) NULL)
+    if (is.null(res)) {
+      data.frame(method = m, nc_label = NA, CN = NA,
+                 `sqrt(CN)` = NA, check.names = FALSE)
+    } else {
+      data.frame(method = m, nc_label = res$nc_label,
+                 CN = res$condition_number,
+                 `sqrt(CN)` = res$condition_index, check.names = FALSE)
+    }
+  }))
+}
+```
+
+## Diagnostic with multiCollglm and comparison with literature
+
+### Model 1: Lesaffre and Marx (1993) -- CELL, LI, TEMP
+
+```{r}
+mod1_leecancer <- glm(y ~ x1 + x4 + x6100, family = binomial(), data = LeeCancer)
+cat("Model 1 (Lesaffre and Marx), with intercept:\n")
+knitr::kable(calc_table(mod1_leecancer), digits = 4)
+```
+
+@lesaffre1993 used this example to compare the $CN$ proposed by @mackinnon1989 (329.95) with the one proposed by @weissfeld1991 (315.14) and also with the one obtained directly from design matrix $X$ with unit length transformation (190.78). Results obtained with `multiCollglm` match those reported in the original paper.
+
+This is in fact the very example @lesaffre1993 use (Sec. 6.1) to introduce their own `ml_collinearity()` criterion, comparing `sqrt(CN)` of the original `X` against `sqrt(CN)` of the Mackinnon-Puterman information matrix:
+
+```{r}
+ml_collinearity(mod1_leecancer)
+```
+
+`multiCollglm` reproduces both of their reported values exactly (`sqrt(CN)_X = 190.78`, which is `method = "X"`, and `sqrt(CN)_W = 329.95`, which is `method = "MP"`), and their own conclusion for this model: the ratio (`r round(ml_collinearity(mod1_leecancer)$ratio_wx, 2)`) stays well below the `ratio_threshold = 5` cutoff, so this is a case of ordinary collinearity in `X` (`sqrt(CN)_X = 190.78 > 30`), not ML-collinearity.
+
+### Model 2: Ozkale and Arican [-@ozkalearican2016] / Ozkale [-@ozkale2021] -- CELL, SMEAR, INFIL, BLAST, TEMP (no LI)
+
+```{r}
+mod2_leecancer <- glm(y ~ x1 + x2 + x3 + x5 + x6100, family = binomial(),
+                data = LeeCancer)
+cat("Model 2 (Ozkale), with intercept:\n")
+knitr::kable(calc_table(mod2_leecancer), digits = 4)
+mod2b_leecancer <- glm(y ~ x1 + x2 + x3 + x5 + x6100 - 1, family = binomial(),
+                 data = LeeCancer)
+cat("Model 2 (Ozkale), without intercept (their own specification):\n")
+knitr::kable(calc_table(mod2b_leecancer), digits = 4)
+```
+
+Ozkale and Arican [-@ozkalearican2016] standardize and center the explanatory variables
+before fitting, explicitly stating that "standardization removes any
+non-essential ill-conditioning resulting from the intercept". They obtain $CN = 295.7026$
+(eigenvalue ratio, no square root), which on the square-root scale would
+be $17.196$. This value does not match any of `condition_number()`'s four methods: their procedure centers the data, which `multiCollglm` deliberately does not do (centering removes the intercept from the analysis, see the guide), so a direct match is not expected.
+
+Ozkale [-@ozkale2021], with the same model, reports the untransformed eigenvalues
+$15.6562, 0.4601, 0.1557, 0.0145, 0.0001$ and from those a condition
+number of $1.3032\times10^{5}$, a value that is obtained exactly neither
+as the ratio ($15.6562/0.0001 = 156,562$) nor as its square root
+($\approx 395.7$) from those very eigenvalues she reports. The same
+happens with her centered-and-scaled scenario: eigenvalues $4.4133,0.3657, 0.2009, 0.0200, 0.0002$, from which the ratio would be
+$22,066.5$, not the $2.6099\times10^{4}$ she reports. These values do not match any of `condition_number()`'s four methods either, for the same reason (centering).
+
+
+### Model 3: Huang, Jou and Cho [-@huang2015] (all covariates)
+
+```{r}
+mod3_leecancer <- glm(y ~ x1 + x2 + x3 + x4 + x5 + x6100, family = binomial(),
+              data = LeeCancer)
+cat("Model 3 (Huang, Jou and Cho), with intercept:\n")
+knitr::kable(calc_table(mod3_leecancer), digits = 4)
+mod3b_leecancer <- glm(y ~ x1 + x2 + x3 + x4 + x5 + x6100 - 1, family = binomial(),
+               data = LeeCancer)
+cat("Model 3 (Huang, Jou and Cho), without intercept:\n")
+knitr::kable(calc_table(mod3b_leecancer), digits = 4)
+```
+
+Huang, Jou and Cho [-@huang2015] use all six covariates and report $CN = 418.13$.  This value does not match any of `condition_number()`'s four methods.
+
+
+## References

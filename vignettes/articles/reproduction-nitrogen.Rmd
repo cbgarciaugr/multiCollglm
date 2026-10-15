@@ -1,0 +1,150 @@
+---
+title: "Reproduction: Chatterjee and Hadi (1988) -- Nitrogen data"
+description: >
+  Reproduces the collinearity diagnostic of the Nitrogen dataset (Gamma,
+  inverse link), contrasts it against nine published
+  reproductions/variants, and shows how multiCollglm's four
+  condition-number methods (WS, MP, X, RAW) behave, and why centering the
+  weighted matrix is not possible for this model.
+bibliography: ../references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Context
+
+The `Nitrogen` dataset records weather conditions and nitrogen dioxide
+concentration (`y`, p.p.h.m.) measured in September 1984 at a monitoring
+station in the San Francisco Bay Area, with four regressors: wind speed
+(`x1`), maximum temperature (`x2`), insolation (`x3`) and a stability
+factor (`x4`). The dataset was introduced by Chatterjee and Hadi [-@chatterjee1988],
+and has been reused by at least nine later works to illustrate
+collinearity diagnostics in a Gamma GLM with the inverse link.
+
+Chatterjee and Hadi describe the dataset as having 26 observations, but
+the original observation numbering jumps from observation 8 to
+observation 10 (there is no observation 9): there are in fact only 25
+observations, which is what `data(Nitrogen)` includes in this package. As
+far as we know, this discrepancy had not previously been flagged in the
+literature that reuses this dataset.
+
+## Data
+
+```{r}
+library(multiCollglm)
+data(Nitrogen)
+str(Nitrogen)
+
+mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"),
+           data = Nitrogen)
+```
+
+## Diagnostic with multiCollglm and comparison with literature
+
+The first work (within our selection) to use this dataset is Ozkale and Arican [-@ozkalearican2016],
+which computes $CN$ on $X'\hat{W}X$ as the
+ratio between the largest and smallest eigenvalue (without a square
+root), with a reciprocal link and an intercept, **standardizing the four
+regressors before adding the column of ones**. They obtain $CN =
+213.8097$, which they interpret as evidence of severe collinearity. This
+value is then repeated without being recalculated in Amin et al.
+[-@amin2020], Lukman et al. [-@lukman2022], Akram et al.
+[-@akram2022] and Shewa and Ugwuowo [-@shewa2023]. In the last two
+cases the fitted model actually uses a logarithmic link, not the
+reciprocal link that originally produced the value, so the $CN$ they cite almost certainly does not correspond to their own weight
+matrix.
+
+Kurtoglu [-@kurtoglu2021] performs an analogous calculation but with
+the IRLS weights of their own log-gamma model, obtaining a much larger
+value: $49,649,929$. Bulut [-@bulut2023] applies the same dataset
+under an Inverse Gaussian distribution (not Gamma) with a log link, and
+obtains $10,263.65$.
+
+Only two works document a full transformation of the data: Ozkale and
+Abbasi [-@ozkaleabbasi2022] weight by $\hat{W}^{1/2}$, center, and rescale
+each column to unit length, obtaining $CN = 2.49\times10^{8}$ (and
+computing the VIF via a Moore-Penrose pseudoinverse because the resulting
+matrix is nearly singular, which they themselves note is why their VIF
+values come out artificially low, 0.19-5.49, despite the astronomically
+large $CN$). Ozkale [-@ozkale2021], with the same
+weighting/centering/unit-length-scaling procedure, reports both an
+untransformed scenario ($CN = 1.4820\times10^{4}$) and a transformed one
+($CN = 1.5508\times10^{16}$, driven by a numerically zero eigenvalue).
+
+We were unable to reproduce the value from Ozkale and Arican [-@ozkalearican2016]
+($\hat\varphi^2 = 0.07572852$, $CN = 213.8097$): refitting the model under
+several standardizations consistently yields $\hat\varphi^2 \approx
+0.1126$ (a quantity invariant to any rescaling of the design matrix),
+which suggests some unreported detail in their estimation procedure
+rather than a data or scaling issue.
+
+
+```{r echo=FALSE}
+methods <- c("WS", "MP", "X", "RAW")
+
+tbl <- do.call(rbind, lapply(methods, function(m) {
+  res <- tryCatch(condition_number(mod, method = m),
+                   error = function(e) NULL)
+  if (is.null(res)) {
+    data.frame(method = m, nc_label = NA, CN = NA,
+               `sqrt(CN)` = NA, check.names = FALSE)
+  } else {
+    data.frame(method = m, nc_label = res$nc_label,
+               CN = res$condition_number,
+               `sqrt(CN)` = res$condition_index, check.names = FALSE)
+  }
+}))
+```
+```{r}
+knitr::kable(tbl, digits = 4)
+```
+
+
+The values with intercept are the ones of Table 1 of the manuscript
+($\sqrt{CN}_{WS} \approx 78$). Without the intercept, the same four
+quantities are:
+
+```{r}
+mod_noint <- update(mod, . ~ . - 1)
+sapply(c("WS", "MP", "X", "RAW"),
+       function(m) condition_number(mod_noint, method = m)$condition_index)
+```
+
+### Why the package does not center
+
+This dataset also illustrates the structural reason why `multiCollglm`
+does not offer any definition that centers the weighted design matrix
+(as Ozkale [-@ozkale2021] and Ozkale and Abbasi [-@ozkaleabbasi2022] do).
+For the Gamma family with its canonical (inverse) link,
+$\sqrt{\hat w_i}\,\hat\eta_i = 1$ for every observation:
+
+```{r}
+range(sqrt(mod_noint$weights) * mod_noint$linear.predictors)
+```
+
+so the weighted design matrix $\hat W^{1/2}X$ satisfies
+$\hat W^{1/2}X\hat\beta = \mathbf 1$, and subtracting the column means
+leaves a matrix whose columns are linearly dependent. In plain base R:
+
+```{r}
+Xw <- model.matrix(mod_noint) * sqrt(mod_noint$weights)
+Xc <- scale(Xw, center = TRUE, scale = FALSE)          # center ...
+range(Xc %*% coef(mod_noint))                          # ... a null vector: Xc b = 0
+Xc <- sweep(Xc, 2, sqrt(colSums(Xc^2)), "/")           # ... and unit length
+eigen(crossprod(Xc), symmetric = TRUE, only.values = TRUE)$values  # smallest ~ 0
+```
+
+The smallest eigenvalue is zero up to rounding, so the condition number
+of the centered matrix is infinite (or an arbitrary huge number
+depending on the rounding noise). That is what explains the near-zero
+eigenvalues in Ozkale [-@ozkale2021] and Ozkale and Abbasi
+[-@ozkaleabbasi2022], and why `"WS"` (no centering) is a better-defined
+diagnostic for this model.
+
+
+## References

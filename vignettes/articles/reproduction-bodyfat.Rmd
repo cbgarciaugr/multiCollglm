@@ -1,0 +1,124 @@
+---
+title: "Reproduction: Bodyfat data (TH.data)"
+description: >
+  Reproduces the collinearity diagnostic of the bodyfat dataset (Gamma,
+  log link) used by five works, and documents a structural fact about the
+  log link for the Gamma family that explains why three of the package's
+  methods coincide exactly in this case.
+bibliography: ../references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Context
+
+The `bodyfat` dataset from the `TH.data` package records body-composition
+and anthropometric measurements from 71 healthy German women. The
+response, `DEXfat`, is the percentage body fat measured by dual-energy
+X-ray absorptiometry (DXA); the regressors include age, waist and hip
+circumference, elbow and knee breadth, and several derived anthropometric
+variables (`anthro3a`, `anthro3b`, `anthro3c`, `anthro4`). The original
+goal, following the body-composition prediction approach of Penrose,
+Nelson and Fisher [-@penrose1985], is to predict body fat from simpler
+anthropometric measurements.
+
+Five of the reviewed works use this dataset under a Gamma distribution:
+Almuqrin and AbaOud [-@almuqrin2025], Al-Ghamdi et al.
+[-@alghamdi2025], Asar and Korkmaz [-@asar2022],
+Seifollahi et al. [-@seifollahi2024] and
+El-Masry et al. [-@elmasry2025]. All of them
+state that they compute their $CN$ as the square root of the
+ratio between the largest and smallest eigenvalue of $X'\hat{W}X$.
+
+## Data
+
+```{r}
+library(multiCollglm)
+if (!requireNamespace("TH.data", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE)
+  message("The 'TH.data' package is not installed; skipping this article.")
+}
+data("bodyfat", package = "TH.data")
+str(bodyfat)
+
+mod <- glm(DEXfat ~ age + waistcirc + hipcirc + elbowbreadth + kneebreadth +
+             anthro3a + anthro3b + anthro3c + anthro4,
+           family = Gamma(link = "log"), data = bodyfat)
+```
+
+```{r echo=FALSE}
+
+methods <- c("WS", "MP", "X", "RAW")
+
+tbl <- do.call(rbind, lapply(methods, function(m) {
+  res <- tryCatch(condition_number(mod, method = m),
+                   error = function(e) NULL)
+  if (is.null(res)) {
+    data.frame(method = m, nc_label = NA, CN = NA,
+               `sqrt(CN)` = NA, check.names = FALSE)
+  } else {
+    data.frame(method = m, nc_label = res$nc_label,
+               CN = res$condition_number,
+               `sqrt(CN)` = res$condition_index, check.names = FALSE)
+  }
+}))
+```
+
+## Diagnostic with multiCollglm and comparison with literature
+
+Almuqrin and AbaOud [-@almuqrin2025], Al-Ghamdi et al. [-@alghamdi2025]
+and El-Masry et al. [-@elmasry2025] report an identical value, $CN =
+3394.30$; none of them explicitly
+states which link function was used, so we could not reproduce that
+specific value. Asar and Korkmaz [-@asar2022] do specify a log link and
+untransformed data, and obtain $CN = 3410.63$. Seifollahi et al.
+[-@seifollahi2024] also claims to use a log link but reports a different value, $CN =
+4026.23$ -- an inconsistency within the literature itself, since two
+works that claim to follow exactly the same procedure (Gamma, log,
+untransformed) do not agree with each other.
+
+## Diagnostic with multiCollglm
+
+```{r}
+knitr::kable(tbl, digits = 4)
+```
+
+A notable feature of this table: `"WS"`, `"MP"` and `"X"` agree **exactly** (not
+just approximately). The reason is structural, specific to this
+family/link combination: for a Gamma GLM with a **log** link, the IRLS
+weight of every observation at convergence is
+
+$$w_i = \frac{1}{V(\mu_i)}\left(\frac{d\mu_i}{d\eta_i}\right)^2 = \frac{1}{\mu_i^2}\cdot\mu_i^2 = 1,$$
+
+i.e. **constant and equal to 1 for every observation**, regardless of the
+fitted values. This can be checked directly:
+
+```{r}
+range(mod$weights)
+```
+
+With IRLS weights identically equal to 1, weighting by $\hat{W}^{1/2}$
+does nothing (it's the same as the unweighted matrix), so rescaling to
+unit length *before* fitting (`"MP"`), *after* fitting (`"WS"`) or
+ignoring the weights altogether (`"X"`)
+produces exactly the same matrix, and hence the same $CN$.
+This is the log-link analogue, for Gamma, of the identity already
+documented for Gamma with the canonical inverse link (`sqrt(w) * eta ≡
+1`, see `?condition_number`): every family/link combination has its own
+structural identity in the IRLS weights, and it is worth keeping in mind
+when interpreting any weighted collinearity diagnostic.
+
+Asar and Korkmaz's [-@asar2022] value reproduces with `method = "RAW"` (3410.63). The "consensus"
+value from the other three works (3394.30) comes very close but not
+exactly, which suggests they used a slightly different link (or some
+minor sampling variant) that they did not document; and Seifollahi et
+al.'s [-@seifollahi2024] value, despite claiming the same procedure as Asar and
+Korkmaz, is close to neither.
+
+
+## References

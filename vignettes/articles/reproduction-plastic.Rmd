@@ -1,0 +1,128 @@
+---
+title: "Reproduction: plastic plywood manufacturing data (Plastic)"
+description: >
+  Reproduces the collinearity diagnostic of the plastic plywood
+  manufacturing dataset, used by six works fitting different count-data
+  GLMs, and documents a citation error (CN = 8634.73) that propagates
+  unverified across at least three publications.
+bibliography: ../references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Context
+
+The `Plastic` dataset comes from a statistical-process-control case study
+at a medium-sized timber industry that manufactures laminated plastic
+plywood [-@marcondes2016]. It has 100 reference
+observations; the response `Y` is the number of defects per unit area
+(count data), and the four regressors are volumetric shrinkage (`X1`, %),
+assembly time (`X2`, minutes), wood density (`X3`, g/cm3) and drying
+temperature (`X4`, deg C). It is a widely cited dataset in the
+collinearity literature because `X1` and `X2` are strongly correlated
+with each other, as are `X3` and `X4`.
+
+It has been reused by Sami, Amin and Butt [-@sami2022], Tanis and
+Asar [-@tanis2026], Mammadova and Ozkale [-@mammadova2021],
+Dawoud [-@dawoud2025], Tanis and Asar [-@tanis2024] and Ashraf
+et al. [-@ashraf2025], each with a different count-data model (Bell,
+Conway-Maxwell-Poisson, Poisson, negative binomial).
+
+
+## Data
+
+```{r}
+library(multiCollglm)
+data(Plastic)
+str(Plastic)
+
+mod <- glm(Y ~ X1 + X2 + X3 + X4, family = poisson(link = "log"),
+           data = Plastic)
+```
+
+```{r echo=FALSE}
+methods <- c("WS", "MP", "X", "RAW")
+
+calc_table <- function(mod) {
+  do.call(rbind, lapply(methods, function(m) {
+    res <- tryCatch(condition_number(mod, method = m),
+                     error = function(e) NULL)
+    if (is.null(res)) {
+      data.frame(method = m, nc_label = NA, CN = NA,
+                 `sqrt(CN)` = NA, check.names = FALSE)
+    } else {
+      data.frame(method = m, nc_label = res$nc_label,
+                 CN = res$condition_number,
+                 `sqrt(CN)` = res$condition_index, check.names = FALSE)
+    }
+  }))
+}
+```
+
+## Diagnostic with multiCollglm and comparison with literature
+
+Tanis and Asar [-@tanis2026] and Tanis and Asar [-@tanis2024] fit a Bell regression
+without an intercept, with the data centered and standardized so that
+$X'X$ is in correlation form (Tanis and Asar [-@tanis2024] state this explicitly:
+*"The design matrix is centered and standardized so that $X'X$ is in correlation form"*), obtaining $CN = 74.5281$.
+
+Sami, Amin and Butt [-@sami2022] fit a Conway-Maxwell-Poisson model and compute
+their $CN$ as the square root of the eigenvalue ratio of
+$X'\hat{W}X$ **excluding the intercept**, with no additional
+transformation reported, obtaining $CN = 8634.73$. Ashraf et al. [-@ashraf2025]
+report **exactly the same value**, $8634.73$, despite fitting three
+different distributions (Conway-Maxwell-Poisson, Poisson and negative
+binomial) -- that three different models, necessarily with different IRLS
+weight matrices, produce the same $CN$ to four decimal places
+is itself a red flag.
+
+Dawoud [-@dawoud2025] uses only three of the four regressors (assembly time,
+density, temperature) with Conway-Maxwell-Poisson and a log link,
+obtaining $CN = 13120.14$, with no further detail on the transformation.
+Mammadova and Ozkale [-@mammadova2021] report $CN = 2.9558\times10^{5}$ as the ratio
+between the largest and smallest eigenvalue of $X'\hat{W}X$, without
+specifying a distribution, link, or transformation.
+
+```{r}
+cat("All four variables, with intercept:\n")
+knitr::kable(calc_table(mod), digits = 4)
+
+mod1 <- glm(Y ~ X1 + X2 + X3 + X4 - 1, family = poisson(link = "log"),
+            data = Plastic)
+cat("All four variables, without intercept:\n")
+knitr::kable(calc_table(mod1), digits = 4)
+
+mod2 <- glm(Y ~ X2 + X3 + X4 - 1, family = poisson(link = "log"),
+             data = Plastic)
+cat("Dawoud's (2025) subset (X2, X3, X4), without intercept:\n")
+knitr::kable(calc_table(mod2), digits = 4)
+```
+
+No combination of family/link/method available in
+`condition_number()` reproduces the three most-cited values in this
+literature ($8634.73$; $13120.14$; $2.9558\times10^{5}$), whether with the
+four variables or Dawoud's [-@dawoud2025] subset of three, and with or without an
+intercept. The values that are obtained span a wide range (from a few
+tens to billions depending on the method), but none match the published
+figures.
+
+That, together with the fact that Ashraf et al. [-@ashraf2025] report the same
+$8634.73$ for three different distributions (when the IRLS weight
+matrix, and hence $CN$, should differ between them)
+suggests that $8634.73$ has been **cited from one work to the next
+without being independently recalculated**, rather than being a verified
+computation in each case. We were unable to establish exactly which
+transformation first produced that figure.
+
+Tanis and Asar's [-@tanis2026] value (74.5281, Bell without an intercept, data centered
+and standardized into correlation form) could not be independently
+verified because Bell regression is not part of R base's `glm()`
+families; it is left as reported by the original source.
+
+
+## References
