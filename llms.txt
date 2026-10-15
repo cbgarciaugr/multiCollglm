@@ -1,0 +1,188 @@
+# multiCollglm
+
+Collinearity diagnostics for generalized linear models (GLMs), on `glm`
+objects or on regularized models fitted with `glmnet` / `cv.glmnet`.
+
+[`condition_number()`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md),
+[`bkw_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/bkw_diagnostics.md)
+and
+[`rvif_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/rvif_diagnostics.md)
+generalize the classical linear-regression collinearity diagnostics to
+any family and link function. By default (`method = "WS"`, Weissfeld and
+Sereika, 1991) they are computed on the design matrix weighted by the
+IRLS weights at convergence and scaled to unit length by column, without
+centering, so the intercept takes part in the diagnosis. The `method`
+argument also gives the definition of MacKinnon and Puterman (`"MP"`),
+the one of the original design matrix \\X'X\\, unweighted (`"X"`), and
+the raw information matrix \\X'WX\\ (`"RAW"`).
+[`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+adds a fourth, complementary diagnostic, comparing the condition number
+of the *original* design matrix against that of the IRLS-weighted
+information matrix (Lesaffre and Marx, 1993) to tell apart ordinary
+collinearity among the explanatory variables from *ML-collinearity*.
+
+## Installation
+
+``` r
+
+install.packages("remotes")
+remotes::install_github("cbgarciaugr/multiCollglm")
+# or, from a local copy of the package folder:
+# remotes::install_local("path/to/multiCollglm_0.4.0")
+```
+
+## Quick example
+
+``` r
+
+library(multiCollglm)
+
+mod <- glm(y ~ x1 + x2 + x3 + x4, family = Gamma(link = "inverse"), data = data)
+
+condition_number(mod)                  # Weissfeld and Sereika (default)
+condition_number(mod, method = "MP")   # MacKinnon and Puterman
+condition_number(mod, method = "X")    # original design matrix X'X (unit length)
+condition_number(mod, method = "RAW")  # X'WX, no transformation
+bkw_diagnostics(mod)
+rvif_diagnostics(mod)
+ml_collinearity(mod)
+```
+
+## Learn more
+
+[`vignette("multiCollglm")`](https://cbgarciaugr.github.io/multiCollglm/articles/multiCollglm.md)
+is the package’s complete guide: every function, the four
+condition-number definitions available via `method`, the
+`glmnet`/`cv.glmnet` interface, and the full ML-collinearity rationale.
+
+The [package website](https://cbgarciaugr.github.io/multiCollglm/) also
+has the [full function
+reference](https://cbgarciaugr.github.io/multiCollglm/reference/index.html)
+an article [comparing the package with
+VisCollin](https://cbgarciaugr.github.io/multiCollglm/articles/comparison-viscollin.html)
+and a series of [reproduction
+articles](https://cbgarciaugr.github.io/multiCollglm/articles/index.html):
+real published cases reproduced with `multiCollglm`, using four example
+datasets bundled with the package (`LeeCancer`, `Nitrogen`, `Mine`,
+`Plastic`) and a fifth (`Bodyfat`, from the `TH.data` package).
+
+# Package index
+
+## Diagnostics
+
+The three main functions. By default (`method = "WS"`) they use the
+design matrix weighted by IRLS at convergence and scaled to unit length
+by column, without centering; `method` also gives the definitions of
+MacKinnon and Puterman (`"MP"`), of the original design matrix (`"X"`)
+and of the raw information matrix (`"RAW"`).
+
+- [`condition_number()`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)
+  : Condition number of a model (collinearity diagnostic)
+- [`bkw_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/bkw_diagnostics.md)
+  : Full Belsley-Kuh-Welsch collinearity diagnostics
+- [`rvif_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/rvif_diagnostics.md)
+  : Redefined Variance Inflation Factor (RVIF) diagnostics
+
+## ML-collinearity
+
+Compares the condition number of the original design matrix against that
+of the IRLS-weighted information matrix, following Lesaffre and Marx
+(1993), to tell apart ordinary collinearity among the explanatory
+variables from ML-collinearity.
+
+- [`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+  : ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+
+## Example datasets
+
+Real data used in the examples (see the Examples menu).
+
+- [`Nitrogen`](https://cbgarciaugr.github.io/multiCollglm/reference/Nitrogen.md)
+  : Nitrogen dioxide air-pollution data (Chatterjee and Hadi 1988)
+- [`Mine`](https://cbgarciaugr.github.io/multiCollglm/reference/Mine.md)
+  : Coal mine roof-fracture data
+- [`LeeCancer`](https://cbgarciaugr.github.io/multiCollglm/reference/LeeCancer.md)
+  : Lee (1974) cancer remission data
+- [`Plastic`](https://cbgarciaugr.github.io/multiCollglm/reference/Plastic.md)
+  : Plastic plywood manufacturing process data
+
+## Package
+
+- [`multiCollglm`](https://cbgarciaugr.github.io/multiCollglm/reference/multiCollglm-package.md)
+  [`multiCollglm-package`](https://cbgarciaugr.github.io/multiCollglm/reference/multiCollglm-package.md)
+  : multiCollglm: collinearity diagnostics for GLMs and glmnet
+
+# Articles
+
+### Get started
+
+- [Introduction to
+  multiCollglm](https://cbgarciaugr.github.io/multiCollglm/articles/multiCollglm.md):
+
+### Examples
+
+Real-data applications. Start with the overview, which links to each
+example and summarizes the four condition-number definitions on all the
+data sets.
+
+- [Examples: real-data
+  applications](https://cbgarciaugr.github.io/multiCollglm/articles/examples.md):
+
+  Index of the worked examples of multiCollglm: five reproductions of
+  published collinearity diagnostics on real data, and a comparison with
+  the VisCollin package, with a summary of the four condition-number
+  definitions on every data set.
+
+- [Reproduction: cancer remission data (Lee
+  1974)](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-lee-cancer.md):
+
+  Reproduces the three logistic-model variants fitted to Lee’s (1974)
+  cancer remission dataset – Lesaffre and Marx (1993), Ozkale and Arican
+  (2016)/Ozkale (2021), and Huang, Jou and Cho (2015) – and contrasts
+  them against multiCollglm’s four methods (WS, MP, X, RAW).
+
+- [Reproduction: Chatterjee and Hadi (1988) -- Nitrogen
+  data](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-nitrogen.md):
+
+  Reproduces the collinearity diagnostic of the Nitrogen dataset (Gamma,
+  inverse link), contrasts it against nine published
+  reproductions/variants, and shows how multiCollglm’s four
+  condition-number methods (WS, MP, X, RAW) behave, and why centering
+  the weighted matrix is not possible for this model.
+
+- [Reproduction: coal mine roof-fracture data
+  (Mine)](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-mines.md):
+
+  Reproduces the collinearity diagnostic of the coal mine roof-fracture
+  dataset, used by five works fitting different count-data GLMs, and
+  shows that the “RAW” (untransformed) method exactly reproduces the
+  most-cited value in the literature.
+
+- [Reproduction: Bodyfat data
+  (TH.data)](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-bodyfat.md):
+
+  Reproduces the collinearity diagnostic of the bodyfat dataset (Gamma,
+  log link) used by five works, and documents a structural fact about
+  the log link for the Gamma family that explains why three of the
+  package’s methods coincide exactly in this case.
+
+- [Reproduction: plastic plywood manufacturing data
+  (Plastic)](https://cbgarciaugr.github.io/multiCollglm/articles/reproduction-plastic.md):
+
+  Reproduces the collinearity diagnostic of the plastic plywood
+  manufacturing dataset, used by six works fitting different count-data
+  GLMs, and documents a citation error (CN = 8634.73) that propagates
+  unverified across at least three publications.
+
+### Comparison with other software
+
+How multiCollglm relates to the VisCollin package, on the same data.
+
+- [Comparison with
+  VisCollin](https://cbgarciaugr.github.io/multiCollglm/articles/comparison-viscollin.md):
+
+  Compares multiCollglm with the VisCollin package (Friendly), on the
+  real datasets of the package: what VisCollin::colldiag() computes when
+  it is given a GLM, when it coincides exactly with multiCollglm (method
+  = “X”), and where the two diverge (IRLS weights, factors, weights and
+  offsets, visualization).

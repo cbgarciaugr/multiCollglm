@@ -1,0 +1,45 @@
+# Package index
+
+## Diagnostics
+
+The three main functions. By default (`method = "WS"`) they use the
+design matrix weighted by IRLS at convergence and scaled to unit length
+by column, without centering; `method` also gives the definitions of
+MacKinnon and Puterman (`"MP"`), of the original design matrix (`"X"`)
+and of the raw information matrix (`"RAW"`).
+
+- [`condition_number()`](https://cbgarciaugr.github.io/multiCollglm/reference/condition_number.md)
+  : Condition number of a model (collinearity diagnostic)
+- [`bkw_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/bkw_diagnostics.md)
+  : Full Belsley-Kuh-Welsch collinearity diagnostics
+- [`rvif_diagnostics()`](https://cbgarciaugr.github.io/multiCollglm/reference/rvif_diagnostics.md)
+  : Redefined Variance Inflation Factor (RVIF) diagnostics
+
+## ML-collinearity
+
+Compares the condition number of the original design matrix against that
+of the IRLS-weighted information matrix, following Lesaffre and Marx
+(1993), to tell apart ordinary collinearity among the explanatory
+variables from ML-collinearity.
+
+- [`ml_collinearity()`](https://cbgarciaugr.github.io/multiCollglm/reference/ml_collinearity.md)
+  : ML-collinearity diagnostic (Lesaffre and Marx, 1993)
+
+## Example datasets
+
+Real data used in the examples (see the Examples menu).
+
+- [`Nitrogen`](https://cbgarciaugr.github.io/multiCollglm/reference/Nitrogen.md)
+  : Nitrogen dioxide air-pollution data (Chatterjee and Hadi 1988)
+- [`Mine`](https://cbgarciaugr.github.io/multiCollglm/reference/Mine.md)
+  : Coal mine roof-fracture data
+- [`LeeCancer`](https://cbgarciaugr.github.io/multiCollglm/reference/LeeCancer.md)
+  : Lee (1974) cancer remission data
+- [`Plastic`](https://cbgarciaugr.github.io/multiCollglm/reference/Plastic.md)
+  : Plastic plywood manufacturing process data
+
+## Package
+
+- [`multiCollglm`](https://cbgarciaugr.github.io/multiCollglm/reference/multiCollglm-package.md)
+  [`multiCollglm-package`](https://cbgarciaugr.github.io/multiCollglm/reference/multiCollglm-package.md)
+  : multiCollglm: collinearity diagnostics for GLMs and glmnet
